@@ -1,0 +1,46 @@
+<div class="bar-chart-container">
+  <h3>barrs</h3>
+  <svg class="bar-chart">
+  </svg>
+</div>
+
+<script>
+var d3 = require("d3")
+export default {
+  data () {
+    return {
+      dataset: {},
+      size: {},
+      svg: undefined,
+      scales: undefined,
+      xyaxis: undefined,
+    }
+  },
+  computed: {
+    xyaxes: function (xyaxis) {
+      console.log(xyaxis)
+      console.log(this)
+      //this.setSvg();
+      return xyaxis
+    },
+  },
+  methods: {
+    setSvg: function () {
+      //let size = this.get("size")
+      let svg = d3.select(".line-chart")
+          .attr("height", size.height)
+          .attr("width", size.width)
+        .append("g")
+          .attr("transform", `translate(${size.margin}, ${size.margin})`)
+      this.set({svg: svg})
+
+    }
+  },
+  oncreate () {
+    //this.createAxes()
+  }
+}
+</script>
+
+<style>
+</style>

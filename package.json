@@ -1,0 +1,26 @@
+{
+  "name": "svelte-charts",
+  "version": "1.0.0",
+  "description": "d3 charts built using the svelte framework",
+  "main": "main.js",
+  "scripts": {
+    "dev": "NODE_ENV=developement webpack-dev-server --hot",
+    "clean": "rimraf dist/",
+    "build": "NODE_ENV=production webpack --progress --profile --colors"
+  },
+  "author": "Andrew Piper",
+  "license": "ISC",
+  "devDependencies": {
+    "babel": "^6.23.0",
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-preset-env": "^1.6.1",
+    "d3": "^4.11.0",
+    "html-webpack-plugin": "^2.30.1",
+    "jquery": "^3.2.1",
+    "rimraf": "^2.6.2",
+    "svelte": "^1.41.2",
+    "svelte-loader": "^2.1.0",
+    "webpack": "^3.8.1",
+    "webpack-dev-server": "^2.9.4"
+  }
+}

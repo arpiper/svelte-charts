@@ -1,0 +1,105 @@
+<div class="svelte-chart-container">
+  <LineChart
+    size="{{ size }}"
+    dataset="{{ dataset }}"
+    scales="{{ scales }}">
+  </LineChart>
+  <BarChart
+    size="{{ size }}"
+    dataset="{{ dataset }}"
+    scales="{{ scales }}"
+    xyaxis="{{xyaxis}}">
+  </BarChart>
+</div>
+
+<script>
+var d3 = require("d3")
+var $ = require("jquery")
+import LineChart from "./LineChart.html"
+import BarChart from "./BarChart.html"
+
+export default {
+  data () {
+    return {
+      size: {
+        height: 300,
+        width: 600,
+        margin: 20 
+      },
+      dataset: {},
+      scales: undefined,
+      xyaxis: undefined,
+    }
+  },
+  methods: {
+    setSvg () {
+      let size = this.get("size")
+      let svg = d3.select(".line-chart")
+          .attr("height", size.height)
+          .attr("width", size.width)
+        .append("g")
+          .attr("transform", `translate(${size.margin}, ${size.margin})`)
+      this.set({svg: svg})
+    },
+    createAxes () {
+      let size, h, w, y, x, yaxis, xaxis, d, svg, scales, xmax, ymax
+      svg = this.get("svg")
+      d = this.get("dataset")
+      size = this.get("size")
+      scales = this.get("scales")
+      h = size.height - (2 * size.margin) // adjust the chart to account for margings.
+      w = size.width - (2 * size.margin)
+      xmax = (scales) ? scales.x : d3.max(d.x)
+      ymax = (scales) ? scales.y : d3.max(d.y)
+
+      y = d3.scaleLinear()
+          .domain([0, ymax])
+          .range([h, 0])
+      x = d3.scaleLinear()
+          .domain([0, xmax])
+          .range([0, w])
+      yaxis = d3.axisLeft(y)
+          .ticks(d.y.length)
+          .tickFormat((d) => d)
+      xaxis = d3.axisBottom(x)
+          .ticks(d.x.length)
+          .tickFormat((d) => d)
+      let y_axis = d3.select("g").append("g")
+        .attr("class", "y-axis")
+        .call(yaxis)
+      let x_axis = d3.select("g").append("g")
+        .attr("class", "x-axis")
+        .attr("transform", `translate(0, ${h})`)
+        .call(xaxis)
+      size.adj_height = h
+      size.adj_width = w
+      this.set({
+        size: size, 
+        xyaxis: {
+          axes: {x: xaxis, y: yaxis},
+          scales: {x: x, y: y}
+        },
+        svg: svg
+      })
+    },
+  },
+
+  oncreate () {
+    this.createAxes()
+  },
+  components: {
+    LineChart,
+    BarChart
+  }
+}
+</script>
+
+
+<style scoped>
+.svelte-chart-container {
+  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  text-align: center;
+  color: #2c3e50;
+  margin-top: 60px;
+}
+</style>
