@@ -2,6 +2,7 @@
   <h3>barrs</h3>
   <svg class="bar-chart">
   </svg>
+  {{ yield }}
 </div>
 
 <script>
@@ -11,33 +12,35 @@ export default {
     return {
       dataset: {},
       size: {},
+      selector: "",
       svg: undefined,
       scales: undefined,
       xyaxis: undefined,
+      axes: undefined,
     }
   },
   computed: {
-    xyaxes: function (xyaxis) {
-      console.log(xyaxis)
-      console.log(this)
+    xyaxes: (xyaxis) => {
+      //console.log(xyaxis)
+      //console.log(this)
       //this.setSvg();
       return xyaxis
     },
   },
   methods: {
     setSvg: function () {
-      //let size = this.get("size")
+      let size = this.get("size")
       let svg = d3.select(".line-chart")
           .attr("height", size.height)
           .attr("width", size.width)
         .append("g")
           .attr("transform", `translate(${size.margin}, ${size.margin})`)
       this.set({svg: svg})
-
     }
   },
   oncreate () {
     //this.createAxes()
+    this.setSvg()
   }
 }
 </script>

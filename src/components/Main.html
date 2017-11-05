@@ -8,7 +8,9 @@
     size="{{ size }}"
     dataset="{{ dataset }}"
     scales="{{ scales }}"
-    xyaxis="{{xyaxis}}">
+    on:create="set({axes: createAxis() })"
+    bind:selector="selector">
+    <svg  class="bar-chart-inject"></svg>
   </BarChart>
 </div>
 
@@ -21,6 +23,7 @@ import BarChart from "./BarChart.html"
 export default {
   data () {
     return {
+      selector: "",
       size: {
         height: 300,
         width: 600,
@@ -34,7 +37,7 @@ export default {
   methods: {
     setSvg () {
       let size = this.get("size")
-      let svg = d3.select(".line-chart")
+      let svg = d3.select(".bar-chart-inject")
           .attr("height", size.height)
           .attr("width", size.width)
         .append("g")
@@ -73,6 +76,10 @@ export default {
         .call(xaxis)
       size.adj_height = h
       size.adj_width = w
+      let a = {
+        axes: {x: xaxis, y: yaxis},
+        scales: {x: x, y: y}
+      }
       this.set({
         size: size, 
         xyaxis: {
@@ -81,11 +88,14 @@ export default {
         },
         svg: svg
       })
+      return a 
     },
   },
 
   oncreate () {
-    this.createAxes()
+    //BarChart.set({axes: this.createAxes()})
+    this.setSvg()
+    
   },
   components: {
     LineChart,

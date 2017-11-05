@@ -9,6 +9,7 @@ var chart = new Main({
       y: [10, 9, 8,7,6]
     },
     // scaling maximums for xy coordinates.
-    scales: {x: 10, y: 20}   
+    scales: {x: 10, y: 20},
+    selector: "bar-chart-id"
   }
 })
