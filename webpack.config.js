@@ -40,7 +40,7 @@ var externals = PRODUCTION
       root: "$"
     },
     "d3": {
-      commonjs2: "$",
+      commonjs2: "d3",
       commonjs: "d3",
       amd: "d3",
       root: "d3"
@@ -53,7 +53,10 @@ var plugins = PRODUCTION
     new HtmlWebpackPlugin({
       chunksSortMode: "dependency"
     }),
-    /*new webpack.optimize.UglifyJsPlugin({
+    /*
+     * requires transpilation to es5, new babel-preset-env
+     * doesn't seem to support this.
+    new webpack.optimize.UglifyJsPlugin({
       beautify: false,
       mangle: {
         keep_fnames: false
@@ -95,14 +98,21 @@ module.exports = {
           loader: "babel-loader",
           query: {
             presets: [
-              "env", {
+              "minify",
+              ["env", {
                 "targets": {
-                  "browsers": ["last 2 versions", "ie >= 8"]
+                  "browsers": ["last 3 versions", "ie > 7"],
+                  "uglify": true,
                 },
-                "modules": "umd",
-              },
-              "minify"],
-            plugins: ["add-module-exports"]
+                forceAllTransforms: true,
+                debug: true,
+              }],
+            ],
+            /*
+             * plugin not compatible with Babel-preset-env. 
+             * Needs Babel-preset-2015
+              plugins: ["add-module-exports"]
+            */
           }
         }
       },
