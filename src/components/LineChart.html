@@ -1,6 +1,6 @@
 <div class="line-chart-container">
-  <h3>lines</h3>
-  <svg class="line-chart"></svg>
+  <h3>{{ title }}</h3>
+  {{ yield }}
 </div>
 
 <script>
@@ -12,95 +12,92 @@ export default {
     return {
       dataset: {},
       size: {},
-      xyaxis: undefined,
+      title: "Line Chart",
+      selector: "",
+      axes: undefined,
       svg: undefined,
       scales: undefined,
+      dotRadius: 4,
     }
   },
   methods: {
-    setSvg () {
-      let size = this.get("size")
-      let svg = d3.select(".line-chart")
-          .attr("height", size.height)
-          .attr("width", size.width)
-        .append("g")
-          .attr("transform", `translate(${size.margin}, ${size.margin})`)
-      this.set({svg: svg})
-    },
     createAxes () {
       let size, h, w, y, x, yaxis, xaxis, d, svg, scales, xmax, ymax
       svg = this.get("svg")
       d = this.get("dataset")
       size = this.get("size")
       scales = this.get("scales")
-      h = size.height - (2 * size.margin) // adjust the chart to account for margings.
-      w = size.width - (2 * size.margin)
-      xmax = (scales) ? scales.x : d3.max(d.x)
-      ymax = (scales) ? scales.y : d3.max(d.y)
-
-      y = d3.scaleLinear()
-          .domain([0, ymax])
-          .range([h, 0])
-      x = d3.scaleLinear()
-          .domain([0, xmax])
-          .range([0, w])
-      yaxis = d3.axisLeft(y)
+      
+      yaxis = d3.axisLeft(scales.y)
           .ticks(d.y.length)
           .tickFormat((d) => d)
-      xaxis = d3.axisBottom(x)
+      xaxis = d3.axisBottom(scales.x)
           .ticks(d.x.length)
           .tickFormat((d) => d)
+
+      svg = svg.append("g").attr("transform", `translate(${size.margin}, ${size.margin})`)
       svg.append("g")
         .attr("class", "y-axis")
         .call(yaxis)
       svg.append("g")
         .attr("class", "x-axis")
-        .attr("transform", `translate(0, ${h})`)
+        .attr("transform", `translate(0, ${size.adj_height})`)
         .call(xaxis)
-      size.adj_height = h
-      size.adj_width = w
+
       this.set({
-        size: size, 
-        xyaxis: {
-          axes: {x: xaxis, y: yaxis},
-          scales: {x: x, y: y}
-        },
+        axes: {x: xaxis, y: yaxis},
         svg: svg
       })
     },
     drawPoints () {
       let data = this.get("dataset")
       let size = this.get("size")
-      let axis = this.get("xyaxis")
+      let axis = this.get("axis")
+      let scales = this.get("scales")
       let svg = this.get("svg")
-      svg.append("g").selectAll("circle").data(data.x)
+      let radius = this.get("dotRadius")
+      let s = svg.append("g").selectAll("circle").data(data.x)
         .enter().append("circle")
           .attr("class", "data-point")
           .attr("fill", "green")
-          .attr("cx", (d) => axis.scales.x(d))
-          .attr("cy", (d,i) => axis.scales.y(data.y[i]))
-          .attr("r", 4)
+          .attr("cy", (d,i) => scales.y(data.y[i]))
+          .attr("r", radius)
+      if (scales.x.step) {
+        s.attr("cx", (d) => scales.x(d) + (scales.x.step() / 2))
+      } else {
+        s.attr("cx", (d) => scales.x(d))
+      }
       this.set({svg: svg})
     },
     drawLines () {
       let data = this.get("dataset")
       let size = this.get("size")
-      let axis = this.get("xyaxis")
+      let axis = this.get("axis")
+      let scales = this.get("scales")
       let svg = this.get("svg")
-      svg.append("g").selectAll("line").data(data.x.slice(0, data.x.length - 1))
+      let s = svg.append("g").selectAll("line").data(data.x.slice(0, data.x.length - 1))
         .enter().append("line")
           .attr("class", "data-line")
           .attr("stroke", "green")
           .attr("stroke-width", 2)
-          .attr("x1", (d) => axis.scales.x(d))
-          .attr("y1", (d,i) => axis.scales.y(data.y[i]))
-          .attr("x2", (d,i) => axis.scales.x(data.x[i+1]))
-          .attr("y2", (d,i) => axis.scales.y(data.y[i+1]))
+          .attr("y1", (d,i) => scales.y(data.y[i]))
+          .attr("y2", (d,i) => scales.y(data.y[i+1]))
+      if (scales.x.step) {
+        s.attr("x1", (d) => scales.x(d) + (scales.x.step() / 2))
+          .attr("x2", (d,i) => scales.x(data.x[i+1]) + (scales.x.step() / 2))
+      } else {
+        s.attr("x1", (d) => scales.x(d))
+          .attr("x2", (d,i) => scales.x(data.x[i+1]))
+      }
       this.set({svg: svg})
     },
   },
   oncreate () {
-    this.setSvg()
+    let selector = this.get("selector")
+    this.set({
+      svg: d3.select(`#${selector}`)
+    })
+    //this.setSvg()
     this.createAxes()
     this.drawPoints()
     this.drawLines()

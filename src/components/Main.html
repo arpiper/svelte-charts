@@ -1,16 +1,23 @@
 <div class="svelte-chart-container">
+  {{#if type === "line"}}
   <LineChart
-    size="{{ size }}"
+    size="{{ sizeProp }}"
+    title="{{ title }}"
     dataset="{{ dataset }}"
-    scales="{{ scales }}">
+    scales="{{ setScales }}"
+    bind:selector="selector">
+    <svg id="{{ selector }}" class="line-chart-inject"></svg>
   </LineChart>
+  {{elseif type === "bar"}}
   <BarChart
-    size="{{ size }}"
+    size="{{ sizeProp }}"
+    title="{{ title }}"
     dataset="{{ dataset }}"
     scales="{{ setScales }}"
     bind:selector="selector">
     <svg id="{{ selector }}" class="bar-chart-inject"></svg>
   </BarChart>
+  {{/if}}
 </div>
 
 <script>
@@ -23,6 +30,8 @@ export default {
   data () {
     return {
       selector: "",
+      type: "line",
+      title: "Chart Title",
       size: {
         height: 300,
         width: 600,
@@ -69,7 +78,6 @@ export default {
       let svg = d3.select(`#${id}`)
           .attr("height", size.height)
           .attr("width", size.width)
-      console.log('main', svg)
       this.set({svg: svg})
     },
   },

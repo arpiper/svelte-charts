@@ -1,5 +1,5 @@
 <div class="bar-chart-container">
-  <h3>barrs</h3>
+  <h3>{{ title }}</h3>
   {{ yield }}
 </div>
 
@@ -10,10 +10,12 @@ export default {
     return {
       dataset: {},
       size: {},
+      title: "Bar Chart",
       selector: "",
       svg: undefined,
       scales: undefined,
       axes: undefined,
+      barWidth: 20,
     }
   },
   computed: {
@@ -25,9 +27,6 @@ export default {
       d = this.get("dataset")
       size = this.get("size")
       scales = this.get("scales")
-      console.log("scales", scales)
-      h = size.height - (2 * size.margin) // adjust the chart to account for margings.
-      w = size.width - (2 * size.margin)
       
       yaxis = d3.axisLeft(scales.y)
           .ticks(d.y.length)
@@ -42,7 +41,7 @@ export default {
         .call(yaxis)
       svg.append("g")
         .attr("class", "x-axis")
-        .attr("transform", `translate(0, ${h})`)
+        .attr("transform", `translate(0, ${size.adj_height})`)
         .call(xaxis)
 
       this.set({
@@ -55,14 +54,19 @@ export default {
       let data = this.get("dataset")
       let size = this.get("size")
       let scales = this.get("scales")
-      svg.append("g").selectAll("rect").data(data.x)
+      let barwidth = this.get("barWidth")
+      svg = svg.append("g").selectAll("rect").data(data.x)
         .enter().append("rect")
           .attr("class", "bar")
           .attr("fill", "green")
-          .attr("width", 20)
-          .attr("x", (d,i) => scales.x(d))
+          .attr("width", barwidth)
           .attr("height", (d,i) => size.adj_height - scales.y(data.y[i]))
           .attr("y", (d,i) => scales.y(data.y[i]))
+      if (scales.x.step) { // adjust bars for a scaleBand
+        svg.attr("x", (d) => scales.x(d) + (scales.x.step() / 2) - (barwidth / 2))
+      } else {
+        svg.attr("x", (d) => scales.x(d) - (barwidth / 2))
+      }
     },
   },
   oncreate () {
