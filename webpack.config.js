@@ -11,7 +11,7 @@ var devtool = PRODUCTION
 
 var entry = PRODUCTION
   ? {
-    "svelte-charts": "./components/Main.html",
+    "svelteCharts": "./src/components/Main.html",
   }
   : [
     "./src/index.js",
@@ -34,11 +34,13 @@ var output = PRODUCTION
 var externals = PRODUCTION
   ? {
     "jquery": {
+      commonjs2: "$",
       commonjs: "$",
       amd: "$",
       root: "$"
     },
     "d3": {
+      commonjs2: "$",
       commonjs: "d3",
       amd: "d3",
       root: "d3"
@@ -51,13 +53,13 @@ var plugins = PRODUCTION
     new HtmlWebpackPlugin({
       chunksSortMode: "dependency"
     }),
-    new webpack.optimize.UglifyJsPlugin({
+    /*new webpack.optimize.UglifyJsPlugin({
       beautify: false,
       mangle: {
-        keep_fnames: true
+        keep_fnames: false
       },
       comments: false
-    }),
+    }),*/
     new webpack.DefinePlugin({
       "process.env": {
         "NODE_ENV": JSON.stringify("production")
@@ -92,7 +94,14 @@ module.exports = {
         use: {
           loader: "babel-loader",
           query: {
-            presets: ["env"],
+            presets: [
+              "env", {
+                "targets": {
+                  "browsers": ["last 2 versions", "ie >= 8"]
+                },
+                "modules": "umd",
+              },
+              "minify"],
             plugins: ["add-module-exports"]
           }
         }

@@ -7,10 +7,9 @@
   <BarChart
     size="{{ size }}"
     dataset="{{ dataset }}"
-    scales="{{ scales }}"
-    on:create="set({axes: createAxis() })"
+    scales="{{ setScales }}"
     bind:selector="selector">
-    <svg  class="bar-chart-inject"></svg>
+    <svg id="{{ selector }}" class="bar-chart-inject"></svg>
   </BarChart>
 </div>
 
@@ -34,68 +33,48 @@ export default {
       xyaxis: undefined,
     }
   },
+  computed: {
+    sizeProp (size) {
+      size.adj_height = size.height - (2 * size.margin)
+      size.adj_width = size.width - (2 * size.margin)
+      return size
+    },
+    setScales (dataset, scales, sizeProp) {
+      let xdomain, ydomain, x, y
+      if (typeof(dataset.x[0]) === "string") {
+        xdomain = dataset.x
+        x = d3.scaleBand()
+      } else if (typeof(dataset.x[0]) === "number") {
+        xdomain = [0, (scales) ? scales.x : d3.max(dataset.x)]
+        x = d3.scaleLinear()
+      }
+      if (typeof(dataset.y[0]) === "string") {
+        ydomain = dataset.y
+        y = d3.scaleBand()
+      } else if (typeof(dataset.y[0]) === "number") {
+        ydomain = [0, (scales) ? scales.y : d3.max(dataset.y)]
+        y = d3.scaleLinear()
+      }
+      y = y.domain(ydomain)
+          .range([sizeProp.adj_height, 0])
+      x = x.domain(xdomain)
+          .range([0, sizeProp.adj_width])
+      return {x: x, y: y}
+    },
+  },
   methods: {
     setSvg () {
       let size = this.get("size")
-      let svg = d3.select(".bar-chart-inject")
+      let id = this.get("selector")
+      let svg = d3.select(`#${id}`)
           .attr("height", size.height)
           .attr("width", size.width)
-        .append("g")
-          .attr("transform", `translate(${size.margin}, ${size.margin})`)
+      console.log('main', svg)
       this.set({svg: svg})
     },
-    createAxes () {
-      let size, h, w, y, x, yaxis, xaxis, d, svg, scales, xmax, ymax
-      svg = this.get("svg")
-      d = this.get("dataset")
-      size = this.get("size")
-      scales = this.get("scales")
-      h = size.height - (2 * size.margin) // adjust the chart to account for margings.
-      w = size.width - (2 * size.margin)
-      xmax = (scales) ? scales.x : d3.max(d.x)
-      ymax = (scales) ? scales.y : d3.max(d.y)
-
-      y = d3.scaleLinear()
-          .domain([0, ymax])
-          .range([h, 0])
-      x = d3.scaleLinear()
-          .domain([0, xmax])
-          .range([0, w])
-      yaxis = d3.axisLeft(y)
-          .ticks(d.y.length)
-          .tickFormat((d) => d)
-      xaxis = d3.axisBottom(x)
-          .ticks(d.x.length)
-          .tickFormat((d) => d)
-      let y_axis = d3.select("g").append("g")
-        .attr("class", "y-axis")
-        .call(yaxis)
-      let x_axis = d3.select("g").append("g")
-        .attr("class", "x-axis")
-        .attr("transform", `translate(0, ${h})`)
-        .call(xaxis)
-      size.adj_height = h
-      size.adj_width = w
-      let a = {
-        axes: {x: xaxis, y: yaxis},
-        scales: {x: x, y: y}
-      }
-      this.set({
-        size: size, 
-        xyaxis: {
-          axes: {x: xaxis, y: yaxis},
-          scales: {x: x, y: y}
-        },
-        svg: svg
-      })
-      return a 
-    },
   },
-
   oncreate () {
-    //BarChart.set({axes: this.createAxes()})
     this.setSvg()
-    
   },
   components: {
     LineChart,

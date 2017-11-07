@@ -1,7 +1,5 @@
 <div class="bar-chart-container">
   <h3>barrs</h3>
-  <svg class="bar-chart">
-  </svg>
   {{ yield }}
 </div>
 
@@ -15,32 +13,65 @@ export default {
       selector: "",
       svg: undefined,
       scales: undefined,
-      xyaxis: undefined,
       axes: undefined,
     }
   },
   computed: {
-    xyaxes: (xyaxis) => {
-      //console.log(xyaxis)
-      //console.log(this)
-      //this.setSvg();
-      return xyaxis
-    },
   },
   methods: {
-    setSvg: function () {
+    createAxes () {
+      let size, h, w, y, x, yaxis, xaxis, d, svg, scales, xmax, ymax
+      svg = this.get("svg")
+      d = this.get("dataset")
+      size = this.get("size")
+      scales = this.get("scales")
+      console.log("scales", scales)
+      h = size.height - (2 * size.margin) // adjust the chart to account for margings.
+      w = size.width - (2 * size.margin)
+      
+      yaxis = d3.axisLeft(scales.y)
+          .ticks(d.y.length)
+          .tickFormat((d) => d)
+      xaxis = d3.axisBottom(scales.x)
+          .ticks(d.x.length)
+          .tickFormat((d) => d)
+
+      svg = svg.append("g").attr("transform", `translate(${size.margin}, ${size.margin})`)
+      svg.append("g")
+        .attr("class", "y-axis")
+        .call(yaxis)
+      svg.append("g")
+        .attr("class", "x-axis")
+        .attr("transform", `translate(0, ${h})`)
+        .call(xaxis)
+
+      this.set({
+        axes: {x: xaxis, y: yaxis},
+        svg: svg
+      })
+    },
+    drawBars: function () {
+      let svg = this.get("svg")
+      let data = this.get("dataset")
       let size = this.get("size")
-      let svg = d3.select(".line-chart")
-          .attr("height", size.height)
-          .attr("width", size.width)
-        .append("g")
-          .attr("transform", `translate(${size.margin}, ${size.margin})`)
-      this.set({svg: svg})
-    }
+      let scales = this.get("scales")
+      svg.append("g").selectAll("rect").data(data.x)
+        .enter().append("rect")
+          .attr("class", "bar")
+          .attr("fill", "green")
+          .attr("width", 20)
+          .attr("x", (d,i) => scales.x(d))
+          .attr("height", (d,i) => size.adj_height - scales.y(data.y[i]))
+          .attr("y", (d,i) => scales.y(data.y[i]))
+    },
   },
   oncreate () {
-    //this.createAxes()
-    this.setSvg()
+    let selector = this.get("selector")
+    this.set({
+      svg: d3.select(`#${selector}`)
+    })
+    this.createAxes()
+    this.drawBars()
   }
 }
 </script>
