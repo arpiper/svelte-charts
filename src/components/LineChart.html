@@ -3,6 +3,14 @@
   {{ yield }}
 </div>
 
+<style>
+div.datapoint-tooltip {
+  position: aboslue;
+  z-index: 100;
+  background: black;
+  color: white;
+}
+</style>
 <script>
 var d3 = require("d3")
 var $ = require("jquery")
@@ -67,6 +75,18 @@ export default {
       } else {
         s.attr("cx", (d) => scales.x(d))
       }
+      let tip = this.addToolTip()
+      s.on("mouseover", (d,i) => {
+        console.log(d)
+        console.log(d3.event)
+        tip.style("opacity", 0.9)
+          .style("left", `${d3.event.pageX}px`)
+          .style("top", `${d3.event.pageY}px`)
+          .html(`<span>${data.x[i]}, ${data.y[i]}</span>`)
+      })
+      s.on("mouseout", (d) => {
+        tip.style("opacity", 0)
+      })
       this.set({svg: svg})
     },
     drawLines () {
@@ -91,6 +111,18 @@ export default {
       }
       this.set({svg: svg})
     },
+    addToolTip () {
+      let data = this.get("dataset")
+      let svg = this.get("svg")
+      svg.selectAll(".data-point").data(data.x)
+        .attr("id", (d,i) => `datapoint-${i}-${d}`)
+
+      let tip = d3.select("body")
+        .append("div")
+          .attr("class", "datapoint-tooltip")
+          .style("opacity", 0)
+      return tip
+    },
   },
   oncreate () {
     let selector = this.get("selector")
@@ -105,5 +137,4 @@ export default {
 }
 </script>
 
-<style scoped>
-</style>
+

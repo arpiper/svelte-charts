@@ -54,14 +54,14 @@ export default {
         xdomain = dataset.x
         x = d3.scaleBand()
       } else if (typeof(dataset.x[0]) === "number") {
-        xdomain = [0, (scales) ? scales.x : d3.max(dataset.x)]
+        xdomain = [0, (scales) ? scales.x : d3.max(dataset.x) * 1.334]
         x = d3.scaleLinear()
       }
       if (typeof(dataset.y[0]) === "string") {
         ydomain = dataset.y
         y = d3.scaleBand()
       } else if (typeof(dataset.y[0]) === "number") {
-        ydomain = [0, (scales) ? scales.y : d3.max(dataset.y)]
+        ydomain = [0, (scales) ? scales.y : d3.max(dataset.y) * 1.334]
         y = d3.scaleLinear()
       }
       y = y.domain(ydomain)
