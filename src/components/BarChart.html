@@ -4,7 +4,9 @@
 </div>
 
 <script>
+import HoverToolTip from "./HoverToolTip.html"
 var d3 = require("d3")
+
 export default {
   data () {
     return {
@@ -19,6 +21,15 @@ export default {
     }
   },
   computed: {
+    hoverData (dataset, scales, size, barWidth, svg, selector) {
+      return {
+        dataset: dataset,
+        scales: scales,
+        size: size,
+        selector: selector,
+        hoverWidth: barWidth,
+      }
+    },
   },
   methods: {
     createAxes () {
@@ -68,18 +79,18 @@ export default {
         svg.attr("x", (d) => scales.x(d) - (barwidth / 2))
       }
     },
-    addToolTip () {
-    },
-    showToolTip () {
-    },
   },
   oncreate () {
+    console.log("barchart", Date.now())
     let selector = this.get("selector")
     this.set({
       svg: d3.select(`#${selector}`)
     })
     this.createAxes()
     this.drawBars()
+  },
+  components: {
+    HoverToolTip
   }
 }
 </script>

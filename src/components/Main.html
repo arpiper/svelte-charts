@@ -1,22 +1,23 @@
 <div class="svelte-chart-container">
+  <HoverToolTip bind:chartData="hoverData"></HoverToolTip>
   {{#if type === "line"}}
-  <LineChart
-    size="{{ sizeProp }}"
-    title="{{ title }}"
-    dataset="{{ dataset }}"
-    scales="{{ setScales }}"
-    bind:selector="selector">
-    <svg id="{{ selector }}" class="line-chart-inject"></svg>
-  </LineChart>
+    <LineChart
+      size="{{ sizeProp }}"
+      title="{{ title }}"
+      dataset="{{ dataset }}"
+      scales="{{ setScales }}"
+      bind:selector="selector">
+      <svg id="{{ selector }}" class="line-chart-inject"></svg>
+    </LineChart>
   {{elseif type === "bar"}}
-  <BarChart
-    size="{{ sizeProp }}"
-    title="{{ title }}"
-    dataset="{{ dataset }}"
-    scales="{{ setScales }}"
-    bind:selector="selector">
-    <svg id="{{ selector }}" class="bar-chart-inject"></svg>
-  </BarChart>
+    <BarChart
+      size="{{ sizeProp }}"
+      title="{{ title }}"
+      dataset="{{ dataset }}"
+      scales="{{ setScales }}"
+      bind:selector="selector">
+      <svg id="{{ selector }}" class="bar-chart-inject"></svg>
+    </BarChart>
   {{/if}}
 </div>
 
@@ -25,6 +26,7 @@ var d3 = require("d3")
 var $ = require("jquery")
 import LineChart from "./LineChart.html"
 import BarChart from "./BarChart.html"
+import HoverToolTip from "./HoverToolTip.html"
 
 export default {
   data () {
@@ -70,6 +72,14 @@ export default {
           .range([0, sizeProp.adj_width])
       return {x: x, y: y}
     },
+    hoverData (dataset, sizeProp, setScales, selector) {
+      return {
+        dataset: dataset,
+        size: sizeProp,
+        scales: setScales,
+        selector: selector,
+      }
+    }
   },
   methods: {
     setSvg () {
@@ -83,10 +93,12 @@ export default {
   },
   oncreate () {
     this.setSvg()
+    console.log("main", Date.now())
   },
   components: {
     LineChart,
-    BarChart
+    BarChart,
+    HoverToolTip,
   }
 }
 </script>

@@ -1,0 +1,109 @@
+<div id="{{ toolTipId }}" class="tooltip-container">
+</div>
+
+<script>
+var d3 = require("d3")
+var $ = require("jquery")
+
+export default {
+  data () {
+    return {
+      chartData: {},
+    }
+  },
+  computed: {
+    toolTipId (chartData) {
+      return `${chartData.selector}-tooltip`
+    }
+  },
+  methods: {
+    addToolTip () {
+      let data = this.get("chartData")
+      let svg = d3.select(`#${data.selector}`).select("g")
+      let tip = d3.select(`#${this.get("toolTipId")}`)
+        .append("div")
+          .attr("class", "tooltip")
+          .style("opacity", 0)
+      let tipbars = svg.append("g").selectAll("rect").data(data.dataset.x)
+        .enter().append("rect")
+          .attr("class", "tooltip-bar")
+          .attr("width", 20)
+          .attr("x", (d) => this.getXCoords(data.scales.x, d) - 10)
+          .attr("height", data.size.adj_height)
+          .style("opacity", 0)
+          .on("mouseover", (d,i,n) => this.showToolTip(d,i,n,tip,data.dataset))
+          .on("mouseout", (d,i,n) => {
+            n[i].style['opacity'] = 0
+            tip.style("opacity", 0)
+          })
+      tip.on("mouseover", (d,i,n) => {
+        tip.style("opacity", 1)
+        })
+        .on("mouseout", () => tip.style("opacity", 0))
+        
+      return tip
+    },
+    showToolTip (d, i, n, tip, data) {
+      let pd = this.get("chartData")
+      let l = $(`#${pd.selector}`).position().left
+      tip.style("opacity", 1)
+        .style("top", `${this.getYCoords(pd.scales.y, data.y[i])}px`)
+        .html(`<span class="tooltip-data">${d}, ${data.y[i]}</span>`)
+      let w = Math.floor($(".tooltip-data").width() / 2)
+      tip.style("left", `${this.getXCoords(pd.scales.x, d) + l - w + 10}px`)
+    },
+    getXCoords (xfunc, val) {
+      let x = xfunc(val)
+      if (xfunc.step) {
+        x += xfunc.step() / 2
+      }
+      return x
+    },
+    getYCoords (yfunc, val) {
+      let y = yfunc(val)
+      if (yfunc.step) {
+        y += yfunc.step() / 2
+      }
+      return y
+    }
+  },
+  oncreate () {
+    console.log("tootltip", Date.now())
+    let d = this.get("chartData")
+    this.addToolTip()
+  }
+}
+</script>
+
+<style>
+.tooltip-container {
+  position: relative;
+}
+.tooltip {
+  position: absolute;
+  z-index: 100;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px;
+}
+/*
+ * little triangle 
+ */
+.tooltip:after {
+  display: block;
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: calc(50% - 10px);
+  border-width: 10px 10px 0;
+  border-style: solid;
+  border-color: rgba(0, 0, 0, 0.8) transparent;
+  width: 0;
+}
+.tooltip-bar {
+  fill-opacity: 0.25;
+  stroke-width: 2px;
+  stroke: black;
+  z-index: 1000;
+}
+</style>

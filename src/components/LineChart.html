@@ -1,10 +1,6 @@
 <div class="line-chart-container">
   <h3>{{ title }}</h3>
   {{ yield }}
-  <!--HoverToolTip
-    scales="{{ scales }}"
-    dataset="{{ dataset }}">
-  </HoverToolTip-->
 </div>
 
 <script>
@@ -64,13 +60,9 @@ export default {
         .enter().append("circle")
           .attr("class", "data-point")
           .attr("fill", "green")
-          .attr("cy", (d,i) => scales.y(data.y[i]))
+          .attr("cy", (d,i) => this.getYCoords(data.y[i]))
+          .attr("cx", (d) => this.getXCoords(d))
           .attr("r", radius)
-      if (scales.x.step) {
-        s.attr("cx", (d) => scales.x(d) + (scales.x.step() / 2))
-      } else {
-        s.attr("cx", (d) => scales.x(d))
-      }
       this.set({svg: svg})
     },
     drawLines () {
@@ -84,52 +76,11 @@ export default {
           .attr("class", "data-line")
           .attr("stroke", "green")
           .attr("stroke-width", 2)
-          .attr("y1", (d,i) => scales.y(data.y[i]))
-          .attr("y2", (d,i) => scales.y(data.y[i+1]))
+          .attr("y1", (d,i) => this.getYCoords(data.y[i]))
+          .attr("y2", (d,i) => this.getYCoords(data.y[i+1]))
           .attr("x1", (d) => this.getXCoords(d))
           .attr("x2", (d,i) => this.getXCoords(data.x[i+1]))
       this.set({svg: svg})
-    },
-    addToolTip () {
-      let data = this.get("dataset")
-      let svg = this.get("svg")
-      svg.selectAll(".data-point").data(data.x)
-        .attr("id", (d,i) => `datapoint-${i}-${d}`)
-
-      let scales = this.get("scales")
-      let size = this.get("size")
-      let r = this.get("dotRadius")
-      let tip = d3.select(".line-chart-container")
-        .append("div")
-          .attr("class", "datapoint-tooltip")
-          .style("opacity", 0)
-      let tipbars = svg.append("g").selectAll("rect").data(data.x)
-        .enter().append("rect")
-          .attr("class", "tooltip-bar")
-          .attr("width", r * 4)
-          .attr("x", (d) => scales.x(d) + scales.x.step() / 2 - r*2)
-          .attr("height", size.adj_height)
-          .style("opacity", 0)
-          .on("mouseover", (d,i,n) => this.showToolTip(d,i,n,tip,data))
-          .on("mouseout", (d,i,n) => {
-            n[i].style['opacity'] = 0
-            tip.style("opacity", 0)
-          })
-      tip.on("mouseover", (d,i,n) => {
-        tip.style("opacity", 1)
-        })
-        .on("mouseout", () => tip.style("opacity", 0))
-        
-      return tip
-    },
-    showToolTip (d, i, n, tip, data) {
-      let l = $(`#${this.get("selector")}`).position().left
-      //n[i].style['opacity'] = 0.25
-      tip.style("opacity", 1)
-        .style("top", `${this.getYCoords(data.y[i])}px`)
-        .html(`<span class="tooltip-data">${d}, ${data.y[i]}</span>`)
-      let w = $(".datapoint-tooltip").width() / 2
-      tip.style("left", `${this.getXCoords(d) + l - w + 5}px`)
     },
     getXCoords (value) {
       let scales = this.get("scales")
@@ -156,7 +107,6 @@ export default {
     this.createAxes()
     this.drawPoints()
     this.drawLines()
-    let tip = this.addToolTip()
   }
 }
 </script>
@@ -164,31 +114,5 @@ export default {
 <style>
 .line-chart-container {
   position: relative;
-}
-.datapoint-tooltip {
-  position: absolute;
-  z-index: 100;
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 10px;
-}
-/*
- * little triangle 
- */
-.datapoint-tooltip:after {
-  display: block;
-  content: "";
-  position: absolute;
-  bottom: -10px;
-  left: calc(50% - 13px);
-  border-width: 10px 10px 0;
-  border-style: solid;
-  border-color: rgba(0, 0, 0, 0.8) transparent;
-  width: 0;
-}
-.tooltip-bar {
-  fill-opacity: 0.25;
-  stroke-width: 2px;
-  stroke: black;
 }
 </style>
