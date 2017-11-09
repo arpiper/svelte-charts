@@ -22,7 +22,7 @@ export default {
   },
   methods: {
     createAxes () {
-      let size, h, w, y, x, yaxis, xaxis, d, svg, scales, xmax, ymax
+      let size, yaxis, xaxis, d, svg, scales
       svg = this.get("svg")
       d = this.get("dataset")
       size = this.get("size")
@@ -67,6 +67,10 @@ export default {
       } else {
         svg.attr("x", (d) => scales.x(d) - (barwidth / 2))
       }
+    },
+    addToolTip () {
+    },
+    showToolTip () {
     },
   },
   oncreate () {
