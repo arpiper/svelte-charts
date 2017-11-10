@@ -1,5 +1,4 @@
 <div class="line-chart-container">
-  <h3>{{ title }}</h3>
   {{ yield }}
 </div>
 
@@ -12,12 +11,12 @@ export default {
     return {
       dataset: {},
       size: {},
-      title: "Line Chart",
       selector: "",
       axes: undefined,
       svg: undefined,
       scales: undefined,
       dotRadius: 4,
+      options: {},
     }
   },
   methods: {

@@ -1,21 +1,24 @@
 <div class="svelte-chart-container">
   <HoverToolTip bind:chartData="hoverData"></HoverToolTip>
+  {{#if title}}
+    <h3>{{ title }}</h3>
+  {{/if}}
   {{#if type === "line"}}
     <LineChart
-      size="{{ sizeProp }}"
       title="{{ title }}"
       dataset="{{ dataset }}"
       scales="{{ setScales }}"
-      bind:selector="selector">
+      bind:selector="selector"
+      options="{{ options }}">
       <svg id="{{ selector }}" class="line-chart-inject"></svg>
     </LineChart>
   {{elseif type === "bar"}}
     <BarChart
       size="{{ sizeProp }}"
-      title="{{ title }}"
       dataset="{{ dataset }}"
       scales="{{ setScales }}"
-      bind:selector="selector">
+      bind:selector="selector"
+      options="{{ options }}">
       <svg id="{{ selector }}" class="bar-chart-inject"></svg>
     </BarChart>
   {{/if}}
@@ -42,6 +45,14 @@ export default {
       dataset: {},
       scales: undefined,
       xyaxis: undefined,
+      options: {
+        ticks: {
+          format: "", // maybe use a callback or something.
+          count_y: 0,
+          count_x: 0,
+        },
+        show_zeroes: true,
+      },
     }
   },
   computed: {
@@ -92,8 +103,15 @@ export default {
     },
   },
   oncreate () {
+    let opts = this.get("options")
+    if (opts.ticks.count_x === 0) {
+      opts.ticks.count_x = this.get("dataset").x.length
+    }
+    if (opts.ticks.count_y === 0) {
+      opts.ticks.count_y = this.get("dataset").y.length
+    }
+    this.set({options: opts})
     this.setSvg()
-    console.log("main", Date.now())
   },
   components: {
     LineChart,
