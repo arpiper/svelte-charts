@@ -134,8 +134,14 @@ export default {
       let size = this.get("size")
       let id = this.get("selector")
       let svg = d3.select(`#${id}`)
-          .attr("height", size.height)
-          .attr("width", size.width)
+          //.attr("height", size.height)
+          //.attr("width", size.width)
+          .attr("height", "100%")
+          .attr("width", "100%")
+          .attr("x", 0)
+          .attr("y", 0)
+          .attr("viewBox", `0 0 ${size.width} ${size.height}`)
+          .attr("preserveAspectRatio", "none")
       this.set({svg: svg})
     },
   },
