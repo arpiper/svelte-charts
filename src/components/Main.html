@@ -1,15 +1,15 @@
-<div class="svelte-chart-container">
+<div class="svelte-chart-container" id="{{ selector }}-container">
   <HoverToolTip bind:chartData="hoverData"></HoverToolTip>
   {{#if title}}
     <h3>{{ title }}</h3>
   {{/if}}
   {{#if type === "line"}}
     <LineChart
-      title="{{ title }}"
+      size="{{ sizeProp }}"
       dataset="{{ dataset }}"
       scales="{{ setScales }}"
       bind:selector="selector"
-      options="{{ options }}">
+      options="{{ opts }}">
       <svg id="{{ selector }}" class="line-chart-inject"></svg>
     </LineChart>
   {{elseif type === "bar"}}
@@ -18,7 +18,7 @@
       dataset="{{ dataset }}"
       scales="{{ setScales }}"
       bind:selector="selector"
-      options="{{ options }}">
+      options="{{ opts }}">
       <svg id="{{ selector }}" class="bar-chart-inject"></svg>
     </BarChart>
   {{/if}}
@@ -36,7 +36,7 @@ export default {
     return {
       selector: "",
       type: "line",
-      title: "Chart Title",
+      title: undefined,
       size: {
         height: 300,
         width: 600,
@@ -45,14 +45,7 @@ export default {
       dataset: {},
       scales: undefined,
       xyaxis: undefined,
-      options: {
-        ticks: {
-          format: "", // maybe use a callback or something.
-          count_y: 0,
-          count_x: 0,
-        },
-        show_zeroes: true,
-      },
+      options: {},
     }
   },
   computed: {
@@ -61,7 +54,19 @@ export default {
       size.adj_width = size.width - (2 * size.margin)
       return size
     },
-    setScales (dataset, scales, sizeProp) {
+    setScales (dataset, scales, sizeProp, opts) {
+      if (!opts.show_zeroes) {
+        let non_zero = dataset.y.map((v,i) => {
+          return {x:dataset.x[i], y:v}
+        }).filter((v,i) => {
+          return v.y !== 0
+        })
+        dataset = {x:[], y:[]}
+        non_zero.forEach((v) => {
+          dataset.x.push(v.x)
+          dataset.y.push(v.y)
+        })
+      }
       let xdomain, ydomain, x, y
       if (typeof(dataset.x[0]) === "string") {
         xdomain = dataset.x
@@ -83,13 +88,45 @@ export default {
           .range([0, sizeProp.adj_width])
       return {x: x, y: y}
     },
-    hoverData (dataset, sizeProp, setScales, selector) {
+    hoverData (dataset, sizeProp, setScales, selector, opts) {
+      if (!opts.show_zeroes) {
+        let non_zero = dataset.y.map((v,i) => {
+          return {x:dataset.x[i], y:v}
+        }).filter((v,i) => {
+          return v.y !== 0
+        })
+        dataset = {x:[], y:[]}
+        non_zero.forEach((v) => {
+          dataset.x.push(v.x)
+          dataset.y.push(v.y)
+        })
+      }
       return {
         dataset: dataset,
         size: sizeProp,
         scales: setScales,
         selector: selector,
       }
+    },
+    opts (options, dataset) {
+      let o = options
+      if (options.ticks) {
+        o.ticks.count_x = (options.ticks.count_x) ? options.ticks.count_x : dataset.x.length 
+        o.ticks.count_y = (options.ticks.count_y) ? options.ticks.count_y : dataset.y.length
+        o.ticks.format = (options.ticks.format) ? options.ticks.format : ""
+        o.ticks.user_set = true
+      } else {
+        o.ticks = {
+          format: "",
+          count_x: dataset.x.length,
+          count_y: dataset.y.length,
+          user_set: false,
+        }
+      }
+      if (options.show_zeroes === undefined) {
+        o.show_zeroes = true
+      }
+      return o
     }
   },
   methods: {
@@ -103,14 +140,6 @@ export default {
     },
   },
   oncreate () {
-    let opts = this.get("options")
-    if (opts.ticks.count_x === 0) {
-      opts.ticks.count_x = this.get("dataset").x.length
-    }
-    if (opts.ticks.count_y === 0) {
-      opts.ticks.count_y = this.get("dataset").y.length
-    }
-    this.set({options: opts})
     this.setSvg()
   },
   components: {
@@ -127,6 +156,8 @@ export default {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+}
+h3 {
+  margin: 0;
 }
 </style>

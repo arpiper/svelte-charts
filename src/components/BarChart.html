@@ -41,10 +41,10 @@ export default {
       
       yaxis = d3.axisLeft(scales.y)
           .ticks(opts.ticks.count_y)
-          .tickFormat((d) => `${opts.ticks.format}d`)
+          .tickFormat((d) => `${opts.ticks.format}${d}`)
       xaxis = d3.axisBottom(scales.x)
           .ticks(opts.ticks.count_x)
-          .tickFormat((d) => `${opts.ticks.format}d`)
+          .tickFormat((d) => `${opts.ticks.format}${d}`)
 
       svg = svg.append("g").attr("transform", `translate(${size.margin}, ${size.margin})`)
       svg.append("g")
@@ -81,10 +81,30 @@ export default {
     },
   },
   oncreate () {
+    let opts = this.get("options")
     let selector = this.get("selector")
     this.set({
       svg: d3.select(`#${selector}`)
     })
+    if (!opts.show_zeroes) {
+      let d = this.get("dataset")
+      let non_zero = d.y.map((v,i) => {
+        return {x:d.x[i], y:v}
+      }).filter((v,i) => {
+        return v.y !== 0
+      })
+      let non_zero_data = {x:[], y:[]}
+      non_zero.forEach((v) => {
+        non_zero_data.x.push(v.x)
+        non_zero_data.y.push(v.y)
+      })
+      console.log(d,non_zero, non_zero_data)
+      if (!opts.ticks.user_set) {
+        opts.ticks.count_x = non_zero_data.x.length
+        opts.ticks.count_y = non_zero_data.y.length
+      }
+      this.set({dataset: non_zero_data, options: opts})
+    }
     this.createAxes()
     this.drawBars()
   },

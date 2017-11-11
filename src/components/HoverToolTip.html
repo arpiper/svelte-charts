@@ -31,7 +31,15 @@ export default {
           .attr("x", (d) => this.getXCoords(data.scales.x, d) - 10)
           .attr("height", data.size.adj_height)
           .style("opacity", 0)
-          .on("mouseover", (d,i,n) => this.showToolTip(d,i,n,tip,data.dataset))
+          .on("mouseover", (d,i,n) => {
+            let l = Math.abs( $(`#${data.selector}`).position().left - $(`#${data.selector}-container`).position().left)
+            tip.style("opacity", 1)
+              .style("top", `${this.getYCoords(data.scales.y, data.dataset.y[i])}px`)
+              .html(`<span class="tooltip-data">${d}, ${data.dataset.y[i]}</span>`)
+            let w = Math.floor($(".tooltip-data").width() / 2)
+            console.log(l, w, this.getXCoords(data.scales.x, d))
+            tip.style("left", `${this.getXCoords(data.scales.x, d) + l - w + 10}px`)
+          }) //this.showToolTip(d,i,n,tip,data.dataset))
           .on("mouseout", (d,i,n) => {
             n[i].style['opacity'] = 0
             tip.style("opacity", 0)
@@ -50,6 +58,7 @@ export default {
         .style("top", `${this.getYCoords(pd.scales.y, data.y[i])}px`)
         .html(`<span class="tooltip-data">${d}, ${data.y[i]}</span>`)
       let w = Math.floor($(".tooltip-data").width() / 2)
+      console.log(l, w, this.getXCoords(pd.scales.x, d))
       tip.style("left", `${this.getXCoords(pd.scales.x, d) + l - w + 10}px`)
     },
     getXCoords (xfunc, val) {
