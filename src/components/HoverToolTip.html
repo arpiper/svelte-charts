@@ -20,10 +20,10 @@ export default {
     addToolTip () {
       let data = this.get("chartData")
       let svg = d3.select(`#${data.selector}`).select("g")
-      let tip = d3.select(`#${this.get("toolTipId")}`)
-        .append("div")
+      let tip = svg.append("g")
+        .append("foreignObject")
           .attr("class", "tooltip")
-          .style("opacity", 0)
+
       let tipbars = svg.append("g").selectAll("rect").data(data.dataset.x)
         .enter().append("rect")
           .attr("class", "tooltip-bar")
@@ -32,34 +32,34 @@ export default {
           .attr("height", data.size.adj_height)
           .style("opacity", 0)
           .on("mouseover", (d,i,n) => {
-            let l = Math.abs( $(`#${data.selector}`).position().left - $(`#${data.selector}-container`).position().left)
-            tip.style("opacity", 1)
-              .style("top", `${this.getYCoords(data.scales.y, data.dataset.y[i])}px`)
-              .html(`<span class="tooltip-data">${d}, ${data.dataset.y[i]}</span>`)
-            let w = Math.floor($(".tooltip-data").width() / 2)
-            console.log(l, w, this.getXCoords(data.scales.x, d))
-            tip.style("left", `${this.getXCoords(data.scales.x, d) + l - w + 10}px`)
-          }) //this.showToolTip(d,i,n,tip,data.dataset))
+            let x = this.getXCoords(data.scales.x, d)
+            let y = this.getYCoords(data.scales.y, data.dataset.y[i])
+            let e = document.createElement("span")
+            e.innerText = `${d}:${data.dataset.y[i]}`
+            e.id = `tooltip-data-${i}`
+            e.setAttribute("class", "tooltip")
+            e.style.backgroundColor = "rgba(0,0,0,0.8)"
+            e.style.color = "white"
+            e.style.fontSize = "10px"
+            e.style.padding = "2px 5px"
+            e.style.visibility = "hidden"
+            tip.html(e.outerHTML)
+            e = document.getElementById(`tooltip-data-${i}`)
+            tip.attr("x", x - (e.offsetWidth / 2))
+              .attr("y", y - (e.offsetHeight * 2))
+              .attr("opacity", 1)
+              .attr("width", e.offsetWidth)
+              .attr("height", e.offsetHeight)
+            e.style.visibility = "visible"
+          })
           .on("mouseout", (d,i,n) => {
             n[i].style['opacity'] = 0
-            tip.style("opacity", 0)
+            tip.attr('opacity', 0)
           })
-      tip.on("mouseover", (d,i,n) => {
-        tip.style("opacity", 1)
-        })
-        .on("mouseout", () => tip.style("opacity", 0))
+      tip.on("mouseover", () => tip.attr("opacity", 1))
+        .on("mouseout", () => tip.attr("opacity", 0))
         
       return tip
-    },
-    showToolTip (d, i, n, tip, data) {
-      let pd = this.get("chartData")
-      let l = $(`#${pd.selector}`).position().left
-      tip.style("opacity", 1)
-        .style("top", `${this.getYCoords(pd.scales.y, data.y[i])}px`)
-        .html(`<span class="tooltip-data">${d}, ${data.y[i]}</span>`)
-      let w = Math.floor($(".tooltip-data").width() / 2)
-      console.log(l, w, this.getXCoords(pd.scales.x, d))
-      tip.style("left", `${this.getXCoords(pd.scales.x, d) + l - w + 10}px`)
     },
     getXCoords (xfunc, val) {
       let x = xfunc(val)
