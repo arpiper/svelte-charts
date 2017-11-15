@@ -22,7 +22,8 @@ export default {
       let svg = d3.select(`#${data.selector}`).select("g")
       let tip = svg.append("g")
         .append("foreignObject")
-          .attr("class", "tooltip")
+          .attr("class", "fo-tooltip-container")
+      tip = this.createTipStyle(tip)
 
       let tipbars = svg.append("g").selectAll("rect").data(data.dataset.x)
         .enter().append("rect")
@@ -34,16 +35,9 @@ export default {
           .on("mouseover", (d,i,n) => {
             let x = this.getXCoords(data.scales.x, d)
             let y = this.getYCoords(data.scales.y, data.dataset.y[i])
-            let e = document.createElement("span")
-            e.innerText = `${d}:${data.dataset.y[i]}`
-            e.id = `tooltip-data-${i}`
-            e.setAttribute("class", "tooltip")
-            e.style.backgroundColor = "rgba(0,0,0,0.8)"
-            e.style.color = "white"
-            e.style.fontSize = "10px"
-            e.style.padding = "2px 5px"
-            e.style.visibility = "hidden"
-            tip.html(e.outerHTML)
+            let e = tip.select(".fo-tooltip")
+            e.attr("id", `tooltip-data-${i}`)
+            e.text(`${d}:${data.dataset.y[i]}`)
             e = document.getElementById(`tooltip-data-${i}`)
             tip.attr("x", x - (e.offsetWidth / 2))
               .attr("y", y - (e.offsetHeight * 2))
@@ -60,6 +54,56 @@ export default {
         .on("mouseout", () => tip.attr("opacity", 0))
         
       return tip
+    },
+    getElement (el) {
+      let e = document.createElement(el)
+      e.setAttribute("class", "fo-tooltip")
+      return e
+    },
+    createTipStyle (tipFO) {
+      let style = document.createElement("style")
+      tipFO.append("xhmtl:head").node().appendChild(style)
+      style.sheet.insertRule(
+        `.fo-tooltip:after {
+          display: block;
+          content: "";
+          position: absolute;
+          bottom: -10px;
+          left: calc(50% - 10px);
+          border-width: 10px 10px 0;
+          border-style: solid;
+          border-color: rgba(0, 0, 0, 0.8) transparent;
+          width: 0;
+        }`,
+      0)
+      style.sheet.insertRule(
+        `.fo-tooltip {
+          display: inline-block;
+          color: white;
+          font-size: 10px;
+          visibility: hidden;
+          padding: 2px 5px;
+          text-align: center;
+          background-color: rgba(0,0,0,0.8);
+        }`,
+      0)
+      style.sheet.insertRule(
+        `.fo-tooltip-cantainer {
+          position: relative;
+          text-align: center;
+        }`,
+      0)
+      style.sheet.insertRule(
+        `body {
+          width: 100%;
+          height: 100%;
+          margin: 0;
+        }`,
+      0)
+      tipFO.node()
+        .appendChild(document.createElement("body"))
+        .appendChild(this.getElement("span"))
+      return tipFO
     },
     getXCoords (xfunc, val) {
       let x = xfunc(val)
