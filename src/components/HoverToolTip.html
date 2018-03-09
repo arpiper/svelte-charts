@@ -62,7 +62,7 @@ export default {
     },
     createTipStyle (tipFO) {
       let style = document.createElement("style")
-      tipFO.append("xhmtl:head").node().appendChild(style)
+      tipFO.append("xhtml:head").node().appendChild(style)
       style.sheet.insertRule(
         `.fo-tooltip:after {
           display: block;
@@ -122,7 +122,10 @@ export default {
   },
   oncreate () {
     let d = this.get("chartData")
-    this.addToolTip()
+    console.log('hovertootltip', d)
+    if (d.options.hovertooltip) {
+      this.addToolTip()
+    }
   }
 }
 </script>

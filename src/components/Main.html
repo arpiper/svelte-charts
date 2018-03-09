@@ -21,6 +21,15 @@
       options="{{ opts }}">
       <svg id="{{ selector }}" class="bar-chart-inject"></svg>
     </BarChart>
+  {{elseif type === "pie"}}
+    <PieChart
+      size="{{ sizeProp }}"
+      dataset="{{ dataset }}"
+      scales="{{ setScales }}"
+      bind:selector="selector"
+      options="{{ opts }}">
+      <svg id="{{ selector }}" class="pie-chart-inject"></svg>
+    </PieChart>
   {{/if}}
 </div>
 
@@ -29,6 +38,7 @@ var d3 = require("d3")
 var $ = require("jquery")
 import LineChart from "./LineChart.html"
 import BarChart from "./BarChart.html"
+import PieChart from "./PieChart.html"
 import HoverToolTip from "./HoverToolTip.html"
 
 export default {
@@ -152,6 +162,7 @@ export default {
   components: {
     LineChart,
     BarChart,
+    PieChart,
     HoverToolTip,
   }
 }

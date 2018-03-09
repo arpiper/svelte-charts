@@ -1,0 +1,74 @@
+<div class="pie-chart-container">
+  {{ yield }}
+</div>
+
+<script>
+var d3 = require("d3")
+
+export default {
+  data () {
+    return {
+      dataset: {},
+      size: {},
+      selector: "",
+      svg: undefined,
+      scales: undefined,
+      axes: undefined,
+      radius: 100,
+      innerRadius: 0,
+      options: {},
+    }
+  },
+  methods: {
+    drawWedges () {
+      let svg, size, data, scales, r, ir
+      svg = this.get("svg")
+      size = this.get("size")
+      data = this.get("dataset")
+      scales = this.get("scales")
+      r = this.get("radius")
+      ir = this.get("innerRadius")
+      let wedges = d3.pie()(data.x)
+      let arc = d3.arc().innerRadius(ir).outerRadius(r)
+      let g = svg.append("g")
+        .attr("transform", `translate(${size.width / 2},${size.height / 2})`)
+      g.selectAll("path").data(wedges)
+        .enter().append("path")
+          .attr("class", "pie-slice")
+          .attr("fill", (d,i) => d3.schemeCategory20[i])
+          .attr("d", (d) => arc(d))
+    },
+    drawKey () {
+      let svg, data, size 
+      svg = this.get("svg")
+      data = this.get("dataset")
+      size = this.get("size")
+      let g = svg.append("g")
+          .attr("tranform", `translate(${size.margin}, ${size.margin})`)
+        .selectAll("g").data(data.x)
+          .enter().append("g")
+            .attr("class", "key-block")
+
+      g.append("rect")
+        .attr("width", 10)
+        .attr("height", 10)
+        .attr("fill", (d,i) => d3.schemeCategory20[i])
+        .text((d,i) => data.y[i])
+    },
+  },
+  oncreate () {
+    let selector = this.get("selector")
+    let s = this.get("size")
+    let r = (s.width > s.height) ? (s.height / 2) - s.margin * 2 : (s.width / 2) - s.margin * 2
+    this.set({
+      svg: d3.select(`#${selector}`),
+      radius: r,
+    })
+    this.drawWedges()
+    this.drawKey()
+  },
+}
+</script>
+
+<style>
+</style>

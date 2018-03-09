@@ -15,9 +15,10 @@ var chart = new Main({
     title: "no zeroes",
     size: {width: 500, height: 200, margin: 25},
     selector: "bar-chart-id",
-    type: "bar",
+    type: "pie",
     options: {
-      show_zeroes: false
+      show_zeroes: false,
+      hovertooltip: false,
     },
   }
 })
