@@ -25,6 +25,12 @@ export default {
           .attr("class", "fo-tooltip-container")
       tip = this.createTipStyle(tip)
 
+      if (data.type === "line" || data.type === "bar") {
+        let tipbars = this.barToolTip(tip, svg)
+      } else if (data.type === "pie") {
+        let tipbars = this.pieToolTip(tip, svg)
+      }
+      /*
       let tipbars = svg.append("g").selectAll("rect").data(data.dataset.x)
         .enter().append("rect")
           .attr("class", "tooltip-bar")
@@ -50,10 +56,48 @@ export default {
             n[i].style['opacity'] = 0
             tip.attr('opacity', 0)
           })
+          */
       tip.on("mouseover", () => tip.attr("opacity", 1))
         .on("mouseout", () => tip.attr("opacity", 0))
         
       return tip
+    },
+    barToolTip (tip, svg) {
+      let data = this.get("chartData")
+      let tipbars = svg.append("g").selectAll("rect").data(data.dataset.x)
+        .enter().append("rect")
+          .attr("class", "tooltip-bar")
+          .attr("width", 20)
+          .attr("x", (d) => this.getXCoords(data.scales.x, d) - 10)
+          .attr("height", data.size.adj_height)
+          .style("opacity", 0)
+          .on("mouseover", (d,i,n) => {
+            let x = this.getXCoords(data.scales.x, d)
+            let y = this.getYCoords(data.scales.y, data.dataset.y[i])
+            let e = tip.select(".fo-tooltip")
+            e.attr("id", `tooltip-data-${i}`)
+            e.text(`${d}:${data.dataset.y[i]}`)
+            e = document.getElementById(`tooltip-data-${i}`)
+            tip.attr("x", x - (e.offsetWidth / 2))
+              .attr("y", y - (e.offsetHeight * 2))
+              .attr("opacity", 1)
+              .attr("width", e.offsetWidth)
+              .attr("height", e.offsetHeight)
+            e.style.visibility = "visible"
+          })
+          .on("mouseout", (d,i,n) => {
+            n[i].style['opacity'] = 0
+            tip.attr('opacity', 0)
+          })
+      return tipbars
+    },
+    pieToolTip (tip, svg) {
+      let data = this.get("chartData")
+      console.log(svg)
+      let tipbars = svg.selectAll(".pie-slice")
+        .on("mouseover", (d,i) => { 
+          return d
+        })
     },
     getElement (el) {
       let e = document.createElement(el)

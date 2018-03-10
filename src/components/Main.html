@@ -98,7 +98,7 @@ export default {
           .range([0, sizeProp.adj_width])
       return {x: x, y: y}
     },
-    hoverData (dataset, sizeProp, setScales, selector, opts) {
+    hoverData (dataset, sizeProp, setScales, selector, opts, type) {
       if (!opts.show_zeroes) {
         let non_zero = dataset.y.map((v,i) => {
           return {x:dataset.x[i], y:v}
@@ -117,6 +117,7 @@ export default {
         scales: setScales,
         selector: selector,
         options: opts,
+        type: type,
       }
     },
     opts (options, dataset) {
@@ -136,6 +137,9 @@ export default {
       }
       if (options.show_zeroes === undefined) {
         o.show_zeroes = true
+      }
+      if (options.hovertooltip === undefined) {
+        o.hovertooltip = true
       }
       return o
     }

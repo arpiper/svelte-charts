@@ -28,47 +28,115 @@ export default {
       scales = this.get("scales")
       r = this.get("radius")
       ir = this.get("innerRadius")
-      let wedges = d3.pie()(data.x)
+      data.colors = []
+      let wedges = d3.pie()(data.y)
+      data.wedges = wedges
+      //console.log('wedges', wedges[0], d3.arc().innerRadius(ir).outerRadius(r).centroid(wedges[0]))
       let arc = d3.arc().innerRadius(ir).outerRadius(r)
       let g = svg.append("g")
         .attr("transform", `translate(${size.width / 2},${size.height / 2})`)
       g.selectAll("path").data(wedges)
         .enter().append("path")
           .attr("class", "pie-slice")
-          .attr("fill", (d,i) => d3.schemeCategory20[i])
+          .attr("fill", (d,i) => {
+            data.colors.push(d3.schemeCategory20[i])
+            return d3.schemeCategory20[i]
+          })
           .attr("d", (d) => arc(d))
     },
+    drawLines () {
+      let svg, size, data, r, ir
+      svg = this.get("svg")
+      size = this.get("size")
+      data = this.get("dataset")
+      r = this.get("radius")
+      ir = this.get("innerRadius")
+      console.log(data.wedges)
+      let arc = d3.arc().innerRadius(ir).outerRadius(r)
+      let g = svg.append("g")
+        .attr("transform", `translate(${size.width / 2}, ${size.height / 2})`)
+      g.selectAll("line").data(data.y)
+        .enter().append("line")
+          .attr("x1", (d,i) => arc.centroid(data.wedges[i])[0])
+          .attr("y1", (d,i) => arc.centroid(data.wedges[i])[1])
+          .attr("x2", (d,i) => {
+            let a = (data.wedges[i].startAngle + data.wedges[i].endAngle) / 2
+            let c = arc.centroid(data.wedges[i])
+            if (c[0] > 0 && c[1] > 0) {
+              return c[0] + (50 * Math.sin(a))
+            } else if (c[0] > 0) {
+              return c[0] + (50 * Math.sin((a - (3/2)*Math.PI)))
+            } else if (c[1] > 0) {
+              return c[0] - (50 * Math.sin((a - (1/2)*Math.PI)))
+            }
+            return c[0] - (50 * Math.sin(a - Math.PI))
+          })
+          .attr("y2", (d,i) => {
+            let a = (data.wedges[i].startAngle + data.wedges[i].endAngle) / 2
+            let c = arc.centroid(data.wedges[i])
+            if (c[0] > 0 && c[1] > 0) {
+              return c[1] + (50 * Math.cos(a))
+            } else if (c[0] > 0) {
+              return c[1] - (50 * Math.cos((a - (3/2)*Math.PI)))
+            } else if (c[1] > 0) {
+              return c[1] + (50 * Math.cos((a - (1/2)*Math.PI)))
+            }
+            return c[1] - (50 * Math.cos(a - Math.PI))
+          })
+          .attr("stroke", 'red')
+          .attr("stroke-width", 1)
+    },
     drawKey () {
-      let svg, data, size 
+      let svg, data, size, key_block_spacing, key_size
       svg = this.get("svg")
       data = this.get("dataset")
       size = this.get("size")
+      key_block_spacing = 15
+      key_size = 10
+      // too many items for the svg height.
+      if ((size.height - 2 * size.margin) < (data.y.length * 15)) {
+        key_block_spacing = (size.height - 2 * size.margin) / data.y.length
+        key_size = key_block_spacing - 2
+      }
       let g = svg.append("g")
-          .attr("tranform", `translate(${size.margin}, ${size.margin})`)
+          .attr("transform", `translate(${size.margin}, ${size.margin})`)
         .selectAll("g").data(data.x)
           .enter().append("g")
             .attr("class", "key-block")
-
+            .attr("transform", (d,i) => `translate(0, ${i * key_block_spacing})`)
       g.append("rect")
-        .attr("width", 10)
-        .attr("height", 10)
-        .attr("fill", (d,i) => d3.schemeCategory20[i])
-        .text((d,i) => data.y[i])
+        .attr("width", key_size)
+        .attr("height", key_size)
+        .attr("x", 0)
+        .attr("y", -key_size)
+        .attr("fill", (d,i) => data.colors[i])
+      g.append("text")
+        .attr("x", (key_size + 5))
+        .text((d,i) => `${d} - ${data.y[i]}`)
+        .attr("font-size", key_size)
     },
   },
   oncreate () {
     let selector = this.get("selector")
     let s = this.get("size")
-    let r = (s.width > s.height) ? (s.height / 2) - s.margin * 2 : (s.width / 2) - s.margin * 2
+    let r = (s.width > s.height) ? (s.height - s.margin * 2) / 2 : (s.width - s.margin * 2) / 2
     this.set({
       svg: d3.select(`#${selector}`),
       radius: r,
     })
     this.drawWedges()
     this.drawKey()
+    this.drawLines()
   },
 }
 </script>
 
 <style>
+.key-block text {
+  font-family: Avenir, Arial, sans-serif;
+  dominant-baseline: text-after-edge;
+}
+.pie-chart-container {
+  border: 1px solid black;
+}
 </style>
