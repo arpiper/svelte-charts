@@ -96,6 +96,7 @@ export default {
       console.log(svg)
       let tipbars = svg.selectAll(".pie-slice")
         .on("mouseover", (d,i) => { 
+          console.log('hovertooltip pie')
           return d
         })
     },

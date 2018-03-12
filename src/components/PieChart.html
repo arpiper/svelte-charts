@@ -31,10 +31,10 @@ export default {
       data.colors = []
       let wedges = d3.pie()(data.y)
       data.wedges = wedges
-      //console.log('wedges', wedges[0], d3.arc().innerRadius(ir).outerRadius(r).centroid(wedges[0]))
       let arc = d3.arc().innerRadius(ir).outerRadius(r)
       let g = svg.append("g")
         .attr("transform", `translate(${size.width / 2},${size.height / 2})`)
+      let lines = this.drawLines()
       g.selectAll("path").data(wedges)
         .enter().append("path")
           .attr("class", "pie-slice")
@@ -43,6 +43,12 @@ export default {
             return d3.schemeCategory20[i]
           })
           .attr("d", (d) => arc(d))
+          .on("mouseover", (d,i) => {
+            document.querySelector(`#hover-line-${i}`).style.opacity = 1
+          })
+          .on("mouseout", (d,i) => {
+            document.querySelector(`#hover-line-${i}`).style.opacity = 0
+          })
     },
     drawLines () {
       let svg, size, data, r, ir
@@ -55,8 +61,12 @@ export default {
       let arc = d3.arc().innerRadius(ir).outerRadius(r)
       let g = svg.append("g")
         .attr("transform", `translate(${size.width / 2}, ${size.height / 2})`)
-      g.selectAll("line").data(data.y)
-        .enter().append("line")
+      g = g.selectAll("g").data(data.y)
+        .enter().append("g")
+          .attr("class", "hover-line")
+          .attr("id", (d,i) => `hover-line-${i}`)
+          .attr("opacity", 0)
+      g.append("line")
           .attr("x1", (d,i) => arc.centroid(data.wedges[i])[0])
           .attr("y1", (d,i) => arc.centroid(data.wedges[i])[1])
           .attr("x2", (d,i) => {
@@ -65,9 +75,9 @@ export default {
             if (c[0] > 0 && c[1] > 0) {
               return c[0] + (50 * Math.sin(a))
             } else if (c[0] > 0) {
-              return c[0] + (50 * Math.sin((a - (3/2)*Math.PI)))
+              return c[0] - (50 * Math.cos((a - (3/2)*Math.PI)))
             } else if (c[1] > 0) {
-              return c[0] - (50 * Math.sin((a - (1/2)*Math.PI)))
+              return c[0] + (50 * Math.cos((a - (1/2)*Math.PI)))
             }
             return c[0] - (50 * Math.sin(a - Math.PI))
           })
@@ -75,16 +85,67 @@ export default {
             let a = (data.wedges[i].startAngle + data.wedges[i].endAngle) / 2
             let c = arc.centroid(data.wedges[i])
             if (c[0] > 0 && c[1] > 0) {
-              return c[1] + (50 * Math.cos(a))
+              return c[1] - (50 * Math.cos(a))
             } else if (c[0] > 0) {
-              return c[1] - (50 * Math.cos((a - (3/2)*Math.PI)))
+              return c[1] - (50 * Math.sin((a - (3/2)*Math.PI)))
             } else if (c[1] > 0) {
-              return c[1] + (50 * Math.cos((a - (1/2)*Math.PI)))
+              return c[1] + (50 * Math.sin((a - (1/2)*Math.PI)))
             }
-            return c[1] - (50 * Math.cos(a - Math.PI))
+            return c[1] + (50 * Math.cos(a - Math.PI))
           })
           .attr("stroke", 'red')
           .attr("stroke-width", 1)
+      g.append("line")
+        .attr("x1", (d,i) => {
+            let a = (data.wedges[i].startAngle + data.wedges[i].endAngle) / 2
+            let c = arc.centroid(data.wedges[i])
+            if (c[0] > 0 && c[1] > 0) {
+              return c[0] + (50 * Math.sin(a))
+            } else if (c[0] > 0) {
+              return c[0] - (50 * Math.cos((a - (3/2)*Math.PI)))
+            } else if (c[1] > 0) {
+              return c[0] + (50 * Math.cos((a - (1/2)*Math.PI)))
+            }
+            return c[0] - (50 * Math.sin(a - Math.PI))
+          })
+        .attr("y1", (d,i) => {
+            let a = (data.wedges[i].startAngle + data.wedges[i].endAngle) / 2
+            let c = arc.centroid(data.wedges[i])
+            if (c[0] > 0 && c[1] > 0) {
+              return c[1] - (50 * Math.cos(a))
+            } else if (c[0] > 0) {
+              return c[1] - (50 * Math.sin((a - (3/2)*Math.PI)))
+            } else if (c[1] > 0) {
+              return c[1] + (50 * Math.sin((a - (1/2)*Math.PI)))
+            }
+            return c[1] + (50 * Math.cos(a - Math.PI))
+          })
+        .attr("x2",  (d,i) => {
+            let a = (data.wedges[i].startAngle + data.wedges[i].endAngle) / 2
+            let c = arc.centroid(data.wedges[i])
+            if (c[0] > 0 && c[1] > 0) {
+              return c[0] + (50 * Math.sin(a)) + 150
+            } else if (c[0] > 0) {
+              return c[0] - (50 * Math.cos((a - (3/2)*Math.PI))) + 150
+            } else if (c[1] > 0) {
+              return c[0] + (50 * Math.cos((a - (1/2)*Math.PI))) + 150
+            }
+            return c[0] - (50 * Math.sin(a - Math.PI)) + 150
+          })
+        .attr("y2", (d,i) => {
+            let a = (data.wedges[i].startAngle + data.wedges[i].endAngle) / 2
+            let c = arc.centroid(data.wedges[i])
+            if (c[0] > 0 && c[1] > 0) {
+              return c[1] - (50 * Math.cos(a))
+            } else if (c[0] > 0) {
+              return c[1] - (50 * Math.sin((a - (3/2)*Math.PI)))
+            } else if (c[1] > 0) {
+              return c[1] + (50 * Math.sin((a - (1/2)*Math.PI)))
+            }
+            return c[1] + (50 * Math.cos(a - Math.PI))
+          })
+        .attr("stroke", "blue")
+      return g
     },
     drawKey () {
       let svg, data, size, key_block_spacing, key_size
@@ -126,7 +187,7 @@ export default {
     })
     this.drawWedges()
     this.drawKey()
-    this.drawLines()
+    //this.drawLines()
   },
 }
 </script>
