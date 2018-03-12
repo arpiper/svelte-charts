@@ -28,35 +28,40 @@ export default {
       if (data.type === "line" || data.type === "bar") {
         let tipbars = this.barToolTip(tip, svg)
       } else if (data.type === "pie") {
+        svg = d3.select(`#${data.selector}`)
         let tipbars = this.pieToolTip(tip, svg)
-      }
-      /*
-      let tipbars = svg.append("g").selectAll("rect").data(data.dataset.x)
-        .enter().append("rect")
-          .attr("class", "tooltip-bar")
-          .attr("width", 20)
-          .attr("x", (d) => this.getXCoords(data.scales.x, d) - 10)
-          .attr("height", data.size.adj_height)
-          .style("opacity", 0)
+        console.log(tipbars)
+        svg.selectAll(".pie-slice")
           .on("mouseover", (d,i,n) => {
-            let x = this.getXCoords(data.scales.x, d)
-            let y = this.getYCoords(data.scales.y, data.dataset.y[i])
+            document.querySelector(`#hover-line-${i}`).style.opacity = 1
+            let x = data.size.width * (1/4)
+            let y = this.getVectorCoords(
+              (d.startAngle + d.endAngle) / 2,
+              data.dataset.arc.centroid(d),
+              (data.size.radius - data.size.innerRadius) / 2 + 20)[1]
             let e = tip.select(".fo-tooltip")
             e.attr("id", `tooltip-data-${i}`)
             e.text(`${d}:${data.dataset.y[i]}`)
             e = document.getElementById(`tooltip-data-${i}`)
-            tip.attr("x", x - (e.offsetWidth / 2))
-              .attr("y", y - (e.offsetHeight * 2))
+
+            if ((y + e.offsetHeight) > (data.size.height / 2)) {
+              y -= e.offsetHeight / 2
+            } else if ((y - e.offsetHeight / 2) < (-data.size.height / 2)) {
+              y += e.offsetHeight / 2
+            }
+            tip.attr("x", x)
+              .attr("y", y - (e.offsetHeight / 2))
               .attr("opacity", 1)
               .attr("width", e.offsetWidth)
               .attr("height", e.offsetHeight)
             e.style.visibility = "visible"
+
           })
           .on("mouseout", (d,i,n) => {
-            n[i].style['opacity'] = 0
+            document.querySelector(`#hover-line-${i}`).style.opacity = 0
             tip.attr('opacity', 0)
           })
-          */
+      }
       tip.on("mouseover", () => tip.attr("opacity", 1))
         .on("mouseout", () => tip.attr("opacity", 0))
         
@@ -92,13 +97,53 @@ export default {
       return tipbars
     },
     pieToolTip (tip, svg) {
-      let data = this.get("chartData")
-      console.log(svg)
-      let tipbars = svg.selectAll(".pie-slice")
-        .on("mouseover", (d,i) => { 
-          console.log('hovertooltip pie')
-          return d
+      let data, w, arc, lines, r
+      data = this.get("chartData")
+      w = data.dataset.wedges
+      arc = data.dataset.arc
+      r = (data.size.radius - data.size.innerRadius) / 2 + 20
+      lines = svg.append("g")
+        .attr("transform", `translate(${data.size.width / 2}, ${data.size.height / 2})`)
+      lines = lines.selectAll("g").data(data.dataset.y)
+        .enter().append("g")
+          .attr("class", "hover-line")
+          .attr("id", (d,i) => `hover-line-${i}`)
+          .attr("opacity", 0)
+      lines.append("line")
+        .attr("x1", (d,i) => arc.centroid(w[i])[0])
+        .attr("y1", (d,i) => arc.centroid(w[i])[1])
+        .attr("x2", (d,i) => {
+          let a = (w[i].startAngle + w[i].endAngle) / 2
+          let c = arc.centroid(w[i])
+          return this.getVectorCoords(a,c,r)[0]
         })
+        .attr("y2", (d,i) => {
+          let a = (w[i].startAngle + w[i].endAngle) / 2
+          let c = arc.centroid(w[i])
+          return this.getVectorCoords(a,c,r)[1]
+        })
+        .attr("stroke", 'black')
+        .attr("stroke-width", 1)
+      lines.append("line")
+        .attr("x1", (d,i) => {
+          let a = (w[i].startAngle + w[i].endAngle) / 2
+          let c = arc.centroid(w[i])
+          return this.getVectorCoords(a,c,r)[0]
+        })
+        .attr("y1", (d,i) => {
+          let a = (w[i].startAngle + w[i].endAngle) / 2
+          let c = arc.centroid(w[i])
+          return this.getVectorCoords(a,c,r)[1]
+        })
+        .attr("x2",  () => data.size.width * (1/4))
+        .attr("y2", (d,i) => {
+          let a = (w[i].startAngle + w[i].endAngle) / 2
+          let c = arc.centroid(w[i])
+          return this.getVectorCoords(a,c,r)[1]
+        })
+        .attr("stroke", "black")
+        .attr("stroke-width", 1)
+      return lines
     },
     getElement (el) {
       let e = document.createElement(el)
@@ -163,6 +208,20 @@ export default {
         y += yfunc.step() / 2
       }
       return y
+    },
+    // a: angle, c: [x,y]
+    getVectorCoords (a,c,h) {
+      let c2
+      if (c[0] > 0 && c[1] > 0) {
+        c2 = [(c[0] + (h * Math.sin(a))), (c[1] - (h * Math.cos(a)))]
+      } else if (c[0] > 0) {
+        c2 = [(c[0] - (h * Math.cos(a - (3/2)*Math.PI))), (c[1] - (h * Math.sin((a - (3/2)*Math.PI))))]
+      } else if (c[1] > 0) {
+        c2 = [(c[0] + (h * Math.cos(a - (1/2)*Math.PI))), (c[1] + (h * Math.sin((a - (1/2)*Math.PI))))]
+      } else {
+        c2 = [(c[0] - (h * Math.sin(a - Math.PI))), (c[1] + (h * Math.cos(a - Math.PI)))]
+      }
+      return c2
     }
   },
   oncreate () {
