@@ -38,6 +38,7 @@ var chart2 = new Main({
     selector: "bar-chart-id2",
     type: "pie",
     options: {
+      show_zeroes: false,
       hovertooltip: true,
       ticks: { 
         format: {

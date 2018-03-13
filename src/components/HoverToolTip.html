@@ -73,7 +73,6 @@ export default {
     pieToolTip (tip, svg) {
       let data, w, arc, lines, r
       data = this.get("chartData")
-      //w = data.dataset.wedges
       arc = data.dataset.arc
       r = (data.size.radius - data.size.innerRadius) / 2 + 20
       lines = svg.append("g")

@@ -71,7 +71,8 @@ export default {
         }).filter((v,i) => {
           return v.y !== 0
         })
-        dataset = {x:[], y:[]}
+        dataset.x = []
+        dataset.y = []
         non_zero.forEach((v) => {
           dataset.x.push(v.x)
           dataset.y.push(v.y)
@@ -105,7 +106,8 @@ export default {
         }).filter((v,i) => {
           return v.y !== 0
         })
-        dataset = {x:[], y:[]}
+        dataset.x = []
+        dataset.y = []
         non_zero.forEach((v) => {
           dataset.x.push(v.x)
           dataset.y.push(v.y)

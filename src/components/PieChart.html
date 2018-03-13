@@ -75,6 +75,7 @@ export default {
   oncreate () {
     let selector = this.get("selector")
     let s = this.get("size")
+    console.log(this.get("dataset"))
     s.radius = (s.width > s.height) ? (s.height - s.margin * 2) / 2 : (s.width - s.margin * 2) / 2
     s.innerRadius = 0
     this.set({
@@ -92,6 +93,5 @@ export default {
   dominant-baseline: text-after-edge;
 }
 .pie-chart-container {
-  border: 1px solid black;
 }
 </style>
