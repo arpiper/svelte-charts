@@ -29,42 +29,11 @@ export default {
         let tipbars = this.barToolTip(tip, svg)
       } else if (data.type === "pie") {
         svg = d3.select(`#${data.selector}`)
-        let tipbars = this.pieToolTip(tip, svg)
-        console.log(tipbars)
-        svg.selectAll(".pie-slice")
-          .on("mouseover", (d,i,n) => {
-            document.querySelector(`#hover-line-${i}`).style.opacity = 1
-            let x = data.size.width * (1/4)
-            let y = this.getVectorCoords(
-              (d.startAngle + d.endAngle) / 2,
-              data.dataset.arc.centroid(d),
-              (data.size.radius - data.size.innerRadius) / 2 + 20)[1]
-            let e = tip.select(".fo-tooltip")
-            e.attr("id", `tooltip-data-${i}`)
-            e.text(`${d}:${data.dataset.y[i]}`)
-            e = document.getElementById(`tooltip-data-${i}`)
-
-            if ((y + e.offsetHeight) > (data.size.height / 2)) {
-              y -= e.offsetHeight / 2
-            } else if ((y - e.offsetHeight / 2) < (-data.size.height / 2)) {
-              y += e.offsetHeight / 2
-            }
-            tip.attr("x", x)
-              .attr("y", y - (e.offsetHeight / 2))
-              .attr("opacity", 1)
-              .attr("width", e.offsetWidth)
-              .attr("height", e.offsetHeight)
-            e.style.visibility = "visible"
-
-          })
-          .on("mouseout", (d,i,n) => {
-            document.querySelector(`#hover-line-${i}`).style.opacity = 0
-            tip.attr('opacity', 0)
-          })
+        let lines = this.pieToolTip(tip, svg)
+        this.addHoverAction(tip, svg, lines)
       }
       tip.on("mouseover", () => tip.attr("opacity", 1))
         .on("mouseout", () => tip.attr("opacity", 0))
-        
       return tip
     },
     barToolTip (tip, svg) {
@@ -99,51 +68,96 @@ export default {
     pieToolTip (tip, svg) {
       let data, w, arc, lines, r
       data = this.get("chartData")
-      w = data.dataset.wedges
+      //w = data.dataset.wedges
       arc = data.dataset.arc
       r = (data.size.radius - data.size.innerRadius) / 2 + 20
       lines = svg.append("g")
         .attr("transform", `translate(${data.size.width / 2}, ${data.size.height / 2})`)
-      lines = lines.selectAll("g").data(data.dataset.y)
+      lines = lines.selectAll("g").data(data.dataset.wedges)
         .enter().append("g")
           .attr("class", "hover-line")
           .attr("id", (d,i) => `hover-line-${i}`)
           .attr("opacity", 0)
       lines.append("line")
-        .attr("x1", (d,i) => arc.centroid(w[i])[0])
-        .attr("y1", (d,i) => arc.centroid(w[i])[1])
+        .attr("x1", (d,i) => arc.centroid(d)[0])
+        .attr("y1", (d,i) => arc.centroid(d)[1])
         .attr("x2", (d,i) => {
-          let a = (w[i].startAngle + w[i].endAngle) / 2
-          let c = arc.centroid(w[i])
+          let a = (d.startAngle + d.endAngle) / 2
+          let c = arc.centroid(d)
           return this.getVectorCoords(a,c,r)[0]
         })
         .attr("y2", (d,i) => {
-          let a = (w[i].startAngle + w[i].endAngle) / 2
-          let c = arc.centroid(w[i])
+          let a = (d.startAngle + d.endAngle) / 2
+          let c = arc.centroid(d)
           return this.getVectorCoords(a,c,r)[1]
         })
-        .attr("stroke", 'black')
+        .attr("stroke", "black")
         .attr("stroke-width", 1)
       lines.append("line")
         .attr("x1", (d,i) => {
-          let a = (w[i].startAngle + w[i].endAngle) / 2
-          let c = arc.centroid(w[i])
+          let a = (d.startAngle + d.endAngle) / 2
+          let c = arc.centroid(d)
           return this.getVectorCoords(a,c,r)[0]
         })
         .attr("y1", (d,i) => {
-          let a = (w[i].startAngle + w[i].endAngle) / 2
-          let c = arc.centroid(w[i])
+          let a = (d.startAngle + d.endAngle) / 2
+          let c = arc.centroid(d)
           return this.getVectorCoords(a,c,r)[1]
         })
         .attr("x2",  () => data.size.width * (1/4))
         .attr("y2", (d,i) => {
-          let a = (w[i].startAngle + w[i].endAngle) / 2
-          let c = arc.centroid(w[i])
+          let a = (d.startAngle + d.endAngle) / 2
+          let c = arc.centroid(d)
           return this.getVectorCoords(a,c,r)[1]
         })
         .attr("stroke", "black")
         .attr("stroke-width", 1)
       return lines
+    },
+    addHoverAction (tip, svg, lines) {
+      let data = this.get("chartData")
+      let anon = function (d, i, n) {
+        let x = data.size.width * (1/4)
+        let y = this.getVectorCoords(
+          (d.startAngle + d.endAngle) / 2,
+          data.dataset.arc.centroid(d),
+          (data.size.radius - data.size.innerRadius) / 2 + 20)[1]
+        let e = tip.select(".fo-tooltip")
+        e.attr("id", `tooltip-data-${i}`)
+        e.text(`${data.dataset.x[i]}:${data.dataset.y[i]}`)
+        e = document.getElementById(`tooltip-data-${i}`)
+        if ((y + e.offsetHeight) > (data.size.height / 2)) {
+          y -= e.offsetHeight / 2
+        } else if ((y - e.offsetHeight / 2) < (-data.size.height / 2)) {
+          y += e.offsetHeight / 2
+        }
+        tip.attr("x", x)
+          .attr("y", y - (e.offsetHeight / 2))
+          .attr("opacity", 1)
+          .attr("width", e.offsetWidth)
+          .attr("height", e.offsetHeight)
+        e.style.visibility = "visible"
+      }
+      let b = anon.bind(this)
+      svg.selectAll(".pie-slice")
+        .on("mouseover", (d,i,n) => {
+          document.querySelector(`#hover-line-${i}`).style.opacity = 1
+          //b(d,i,n)
+          anon.call(this, d, i, n)
+
+        })
+        .on("mouseout", (d,i,n) => {
+          document.querySelector(`#hover-line-${i}`).style.opacity = 0
+          tip.attr("opacity", 0)
+        })
+      lines.on("mouseover", (d,i,n) => {
+        document.querySelector(`#hover-line-${i}`).style.opacity = 1
+        anon.call(this, d, i, n)
+      })
+      lines.on("mouseout", (d,i,n) => {
+        document.querySelector(`#hover-line-${i}`).style.opacity = 0
+        tip.attr("opacity", 0)
+      })
     },
     getElement (el) {
       let e = document.createElement(el)
