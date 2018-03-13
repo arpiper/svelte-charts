@@ -41,10 +41,11 @@ export default {
           .attr("d", (d) => arc(d))
     },
     drawKey () {
-      let svg, data, size, key_block_spacing, key_size
+      let svg, data, size, key_block_spacing, key_size, o
       svg = this.get("svg")
       data = this.get("dataset")
       size = this.get("size")
+      o = this.get("options")
       key_block_spacing = 15
       key_size = 10
       // too many items for the svg height.
@@ -66,7 +67,8 @@ export default {
         .attr("fill", (d,i) => data.colors[i])
       g.append("text")
         .attr("x", (key_size + 5))
-        .text((d,i) => `${d} - ${data.y[i]}`)
+        .text((d,i) => `${o.ticks.format.x.pre}${d}${o.ticks.format.x.suf} - 
+          ${o.ticks.format.y.pre}${data.y[i]}${o.ticks.format.y.suf}`)
         .attr("font-size", key_size)
     },
   },
@@ -80,7 +82,6 @@ export default {
     })
     this.drawWedges()
     this.drawKey()
-    //this.drawLines()
   },
 }
 </script>

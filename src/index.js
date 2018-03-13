@@ -39,6 +39,11 @@ var chart2 = new Main({
     type: "pie",
     options: {
       hovertooltip: true,
+      ticks: { 
+        format: {
+          y: {pre: "$"}
+        },
+      }
     }
   }
 })
@@ -53,5 +58,12 @@ var chart1 = new Main({
     },
     //scales: {x: 140, y: 100},
     selector: "chart-id",
+    options: {
+      ticks: {
+        format: {
+          y: {pre: "$", suf: "MPH"},
+        },
+      },
+    }
   }
 })

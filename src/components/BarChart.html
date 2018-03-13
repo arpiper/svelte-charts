@@ -41,10 +41,10 @@ export default {
       
       yaxis = d3.axisLeft(scales.y)
           .ticks(opts.ticks.count_y)
-          .tickFormat((d) => `${opts.ticks.format}${d}`)
+          .tickFormat((d) => `${opts.ticks.format.y.pre}${d}${opts.ticks.format.y.suf}`)
       xaxis = d3.axisBottom(scales.x)
           .ticks(opts.ticks.count_x)
-          .tickFormat((d) => `${opts.ticks.format}${d}`)
+          .tickFormat((d) => `${opts.ticks.format.x.pre}${d}${opts.ticks.format.x.suf}`)
 
       svg = svg.append("g").attr("transform", `translate(${size.margin}, ${size.margin})`)
       svg.append("g")

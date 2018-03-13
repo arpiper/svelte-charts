@@ -50,7 +50,12 @@ export default {
             let y = this.getYCoords(data.scales.y, data.dataset.y[i])
             let e = tip.select(".fo-tooltip")
             e.attr("id", `tooltip-data-${i}`)
-            e.text(`${d}:${data.dataset.y[i]}`)
+            let text = `${d}:${data.dataset.y[i]}`
+            if (data.options.ticks.format) {
+              let f = data.options.ticks.format
+              text = `${f.x.pre}${d}${f.x.suf}:${f.y.pre}${data.dataset.y[i]}${f.y.suf}`
+            }
+            e.text(text)
             e = document.getElementById(`tooltip-data-${i}`)
             tip.attr("x", x - (e.offsetWidth / 2))
               .attr("y", y - (e.offsetHeight * 2))
@@ -116,6 +121,7 @@ export default {
     },
     addHoverAction (tip, svg, lines) {
       let data = this.get("chartData")
+      console.log(data)
       let anon = function (d, i, n) {
         let x = data.size.width * (1/4)
         let y = this.getVectorCoords(
@@ -124,7 +130,13 @@ export default {
           (data.size.radius - data.size.innerRadius) / 2 + 20)[1]
         let e = tip.select(".fo-tooltip")
         e.attr("id", `tooltip-data-${i}`)
-        e.text(`${data.dataset.x[i]}:${data.dataset.y[i]}`)
+        let text = `${data.dataset.x[i]}:${data.dataset.y[i]}`
+        if (data.options.ticks.format) {
+          let f = data.options.ticks.format
+          text = `${f.x.pre}${data.dataset.x[i]}${f.x.suf}
+            ${f.y.pre}${data.dataset.y[i]}${f.y.suf}`
+        }
+        e.text(text)
         e = document.getElementById(`tooltip-data-${i}`)
         if ((y + e.offsetHeight) > (data.size.height / 2)) {
           y -= e.offsetHeight / 2

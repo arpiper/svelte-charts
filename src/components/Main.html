@@ -125,11 +125,25 @@ export default {
       if (options.ticks) {
         o.ticks.count_x = (options.ticks.count_x) ? options.ticks.count_x : dataset.x.length 
         o.ticks.count_y = (options.ticks.count_y) ? options.ticks.count_y : dataset.y.length
-        o.ticks.format = (options.ticks.format) ? options.ticks.format : ""
+        let format = {x: {pre: "", suf: ""}, y: {pre: "", suf: ""}}
+        if (options.ticks.format.x) {
+          for (let k in options.ticks.format.x) {
+            format.x[k] = options.ticks.format.x[k]
+          }
+        }
+        if (options.ticks.format.y) {
+          for (let k in options.ticks.format.y) {
+            format.y[k] = options.ticks.format.y[k]
+          }
+        }
+        o.ticks.format = format
         o.ticks.user_set = true
       } else {
         o.ticks = {
-          format: "",
+          format: {
+            x: {pre: "", suf: ""},
+            y: {pre: "", suf: ""},
+          },
           count_x: dataset.x.length,
           count_y: dataset.y.length,
           user_set: false,
@@ -149,8 +163,6 @@ export default {
       let size = this.get("size")
       let id = this.get("selector")
       let svg = d3.select(`#${id}`)
-          //.attr("height", size.height)
-          //.attr("width", size.width)
           .attr("height", "100%")
           .attr("width", "100%")
           .attr("x", 0)
