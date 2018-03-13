@@ -24,7 +24,6 @@ export default {
       size = this.get("size")
       data = this.get("dataset")
       scales = this.get("scales")
-      console.log(size)
       data.colors = []
       let wedges = d3.pie()(data.y)
       data.wedges = wedges
