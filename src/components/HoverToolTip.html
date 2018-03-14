@@ -120,7 +120,6 @@ export default {
     },
     addHoverAction (tip, svg, lines) {
       let data = this.get("chartData")
-      console.log(data)
       let anon = function (d, i, n) {
         let x = data.size.width * (1/4)
         let y = this.getVectorCoords(
