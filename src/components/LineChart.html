@@ -82,6 +82,24 @@ export default {
           .attr("x2", (d,i) => this.getXCoords(xset[i+1]))
       this.set({svg: svg})
     },
+    drawKey (xet, yset, colors) {
+      let size = this.get("size")
+      let svg = this.get("svg")
+      let g = svg.append("g")
+          .attr("transform", `translate(${size.width - 100}, ${0})`)
+        .selectAll("g").data(Object.keys(yset))
+          .enter().append("g")
+            .attr("class", "key")
+            .attr("transform", `translate(0, 10)`)
+      g.append("rect")
+        .attr("width", 10)
+        .attr("height", 2)
+        .attr("fill", (d,i) => colors[i])
+      g.append("text")
+        .attr("x", 20)
+        .text((d) => d)
+
+    },
     getXCoords (value) {
       let scales = this.get("scales")
       let x = scales.x(value)
@@ -124,6 +142,7 @@ export default {
         data.colors[k] = d3.schemeCategory20[i]
         i++
       }
+      this.drawKey(data.x, data.y, data.colors)
     } else {
       this.drawPoints(data.x, data.y)
       this.drawLines(data.x, data.y)

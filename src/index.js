@@ -54,15 +54,16 @@ var chart1 = new Main({
   data: {
     dataset: {
       x: ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'],
-      /*y: {
+      y: {
         'fiesrt': [2, 34, 23, 45, 72, 1, 4, 7, 53, 0],
         'second': [2, 3, 5, 2, 6, 29, 123, 32, 6, 0],
-      }*/
-      y: [2, 3, 5, 2, 6, 29, 123, 32, 6, 0],
+      }
+      //y: [2, 3, 5, 2, 6, 29, 123, 32, 6, 0],
     },
     //scales: {x: 140, y: 100},
     selector: "chart-id",
     options: {
+      multiline: true,
       show_zeroes: false,
       ticks: {
         format: {
