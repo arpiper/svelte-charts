@@ -53,13 +53,17 @@ var chart1 = new Main({
   target: document.querySelector("#main"),
   data: {
     dataset: {
-      //x: [2, 3, 5, 2, 6, 29, 123, 32, 6],
-      x: ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'],
-      y: [2, 34, 23, 45, 72, 1, 4, 7, 53]
+      x: ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'],
+      /*y: {
+        'fiesrt': [2, 34, 23, 45, 72, 1, 4, 7, 53, 0],
+        'second': [2, 3, 5, 2, 6, 29, 123, 32, 6, 0],
+      }*/
+      y: [2, 3, 5, 2, 6, 29, 123, 32, 6, 0],
     },
     //scales: {x: 140, y: 100},
     selector: "chart-id",
     options: {
+      show_zeroes: false,
       ticks: {
         format: {
           y: {pre: "$", suf: "MPH"},

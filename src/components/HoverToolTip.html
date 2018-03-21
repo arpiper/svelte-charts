@@ -38,7 +38,7 @@ export default {
     },
     barToolTip (tip, svg) {
       let data = this.get("chartData")
-      let tipbars = svg.append("g").selectAll("rect").data(data.dataset.x)
+      let tipbars = svg.append("g").selectAll("rect").data(data.xvalues)
         .enter().append("rect")
           .attr("class", "tooltip-bar")
           .attr("width", 20)
@@ -46,14 +46,26 @@ export default {
           .attr("height", data.size.adj_height)
           .style("opacity", 0)
           .on("mouseover", (d,i,n) => {
+            let keys = Object.keys(data.yvalues)
             let x = this.getXCoords(data.scales.x, d)
-            let y = this.getYCoords(data.scales.y, data.dataset.y[i])
+            let y = this.getYCoords(data.scales.y, data.yvalues[i])
+            if (!y) {
+              y = this.getYCoords(data.scales.y, data.yvalues[keys[0]][i]) 
+            }
             let e = tip.select(".fo-tooltip")
             e.attr("id", `tooltip-data-${i}`)
-            let text = `${d}:${data.dataset.y[i]}`
-            if (data.options.ticks.format) {
+            let text = `${d}:${data.yvalues[i]}`
+            if (data.options.multiline || data.options.stacked) {
               let f = data.options.ticks.format
-              text = `${f.x.pre}${d}${f.x.suf}:${f.y.pre}${data.dataset.y[i]}${f.y.suf}`
+              text = `${f.x.pre}${d}${f.x.suf}:`
+              keys.forEach((v) => {
+                text += ` ${f.y.pre}${data.yvalues[v][i]}${f.y.suf}`
+              })
+            } else {
+              if (data.options.ticks.format) {
+                let f = data.options.ticks.format
+                text = `${f.x.pre}${d}${f.x.suf}:${f.y.pre}${data.yvalues[i]}${f.y.suf}`
+              }
             }
             e.text(text)
             e = document.getElementById(`tooltip-data-${i}`)
@@ -128,11 +140,11 @@ export default {
           (data.size.radius - data.size.innerRadius) / 2 + 20)[1]
         let e = tip.select(".fo-tooltip")
         e.attr("id", `tooltip-data-${i}`)
-        let text = `${data.dataset.x[i]}:${data.dataset.y[i]}`
+        let text = `${data.xvalues[i]}:${data.yvalues[i]}`
         if (data.options.ticks.format) {
           let f = data.options.ticks.format
-          text = `${f.x.pre}${data.dataset.x[i]}${f.x.suf}
-            ${f.y.pre}${data.dataset.y[i]}${f.y.suf}`
+          text = `${f.x.pre}${data.xvalues[i]}${f.x.suf}
+            ${f.y.pre}${data.yvalues[i]}${f.y.suf}`
         }
         e.text(text)
         e = document.getElementById(`tooltip-data-${i}`)

@@ -6,7 +6,7 @@
   {{#if type === "line"}}
     <LineChart
       size="{{ sizeProp }}"
-      dataset="{{ dataset }}"
+      dataset="{{ chartData }}"
       scales="{{ setScales }}"
       bind:selector="selector"
       options="{{ opts }}">
@@ -24,7 +24,7 @@
   {{elseif type === "pie"}}
     <PieChart
       size="{{ sizeProp }}"
-      dataset="{{ dataset }}"
+      dataset="{{ chartData }}"
       scales="{{ setScales }}"
       bind:selector="selector"
       options="{{ opts }}">
@@ -64,33 +64,42 @@ export default {
       size.adj_width = size.width - (2 * size.margin)
       return size
     },
-    setScales (dataset, scales, sizeProp, opts) {
+    chartData (dataset, nonZeroDataset, opts) {
       if (!opts.show_zeroes) {
-        let non_zero = dataset.y.map((v,i) => {
-          return {x:dataset.x[i], y:v}
-        }).filter((v,i) => {
-          return v.y !== 0
-        })
-        dataset.x = []
-        dataset.y = []
-        non_zero.forEach((v) => {
-          dataset.x.push(v.x)
-          dataset.y.push(v.y)
-        })
+        return nonZeroDataset
+      }
+      return dataset
+    },
+    setScales (dataset, scales, sizeProp, opts, nonZeroDataset) {
+      let data = dataset
+      if (!opts.show_zeroes) {
+        data = nonZeroDataset
       }
       let xdomain, ydomain, x, y
-      if (typeof(dataset.x[0]) === "string") {
-        xdomain = dataset.x
+      let xset = data.x
+      if (typeof(xset[0]) === "string") {
+        xdomain = xset
         x = d3.scaleBand()
-      } else if (typeof(dataset.x[0]) === "number") {
-        xdomain = [0, (scales) ? scales.x : d3.max(dataset.x) * 1.334]
+      } else if (typeof(xset[0]) === "number") {
+        xdomain = [0, (scales) ? scales.x : d3.max(xset) * 1.334]
         x = d3.scaleLinear()
       }
-      if (typeof(dataset.y[0]) === "string") {
-        ydomain = dataset.y
+      // check for multiple data values sets
+      let yset = data.y
+      if (opts.multiline) {
+        if (Array.isArray(yset)) {
+          console.error("Multiline/Stacked charts only accept an object of y-value data")
+        }
+        yset = []
+        for (let v of Object.values(data.y)) {
+          yset = yset.concat(v)
+        }
+      }
+      if (typeof(yset[0]) === "string") {
+        ydomain = yset
         y = d3.scaleBand()
-      } else if (typeof(dataset.y[0]) === "number") {
-        ydomain = [0, (scales) ? scales.y : d3.max(dataset.y) * 1.334]
+      } else if (typeof(yset[0]) === "number") {
+        ydomain = [0, (scales) ? scales.y : d3.max(yset) * 1.334]
         y = d3.scaleLinear()
       }
       y = y.domain(ydomain)
@@ -99,28 +108,61 @@ export default {
           .range([0, sizeProp.adj_width])
       return {x: x, y: y}
     },
-    hoverData (dataset, sizeProp, setScales, selector, opts, type) {
+    hoverData (dataset, sizeProp, setScales, selector, opts, type, nonZeroDataset, chartData) {
+      let data = dataset
       if (!opts.show_zeroes) {
-        let non_zero = dataset.y.map((v,i) => {
-          return {x:dataset.x[i], y:v}
-        }).filter((v,i) => {
-          return v.y !== 0
-        })
-        dataset.x = []
-        dataset.y = []
-        non_zero.forEach((v) => {
-          dataset.x.push(v.x)
-          dataset.y.push(v.y)
-        })
+        data = nonZeroDataset
       }
       return {
-        dataset: dataset,
+        dataset: chartData,
+        yvalues: data.y,
+        xvalues: data.x,
         size: sizeProp,
         scales: setScales,
         selector: selector,
         options: opts,
         type: type,
       }
+    },
+    nonZeroDataset (dataset, opts) {
+      let data = JSON.parse(JSON.stringify(dataset))
+      let keys = Object.keys(data.y)
+      let non_zero = data.x.map((v,i) => {
+        let yvalue 
+        if (opts.multiline || opts.stacked) {
+          yvalue = []
+          for (let k of Object.keys(data.y)) {
+            yvalue.push(data.y[k][i])
+          }
+        } else {
+          yvalue = dataset.y[i]
+        }
+        return {x:v, y:yvalue}
+      }).filter((v,i) => {
+        if (opts.multiline || opts.stacked) {
+          if (v.y.reduce((a, c) => a + c) === 0) {
+            return false
+          }
+        }
+        return v.y !== 0
+      })
+      data.x = []
+      data.y = (opts.multiline || opts.stacked) ? {} : []
+      non_zero.forEach((v,i) => {
+        data.x.push(v.x)
+        if (opts.multiline || opts.stacked) {
+          keys.forEach((k,j) => {
+            if (i === 0) {
+              data.y[k] = [v.y[j]]
+            } else {
+              data.y[k].push(v.y[j])
+            }
+          })
+        } else {
+          data.y.push(v.y)
+        }
+      })
+      return data
     },
     opts (options, dataset) {
       let o = options
@@ -156,6 +198,15 @@ export default {
       }
       if (options.hovertooltip === undefined) {
         o.hovertooltip = true
+      }
+      if (options.multiline === undefined) {
+        o.multiline = false
+      }
+      if (options.stacked === undefined) {
+        o.stacked = false
+      }
+      if (options.horizontal === undefined) {
+        o.horizontal = false
       }
       return o
     }

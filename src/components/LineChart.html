@@ -49,37 +49,37 @@ export default {
         svg: svg
       })
     },
-    drawPoints () {
-      let data = this.get("dataset")
+    drawPoints (xset, yset, color="green") {
+      //let data = this.get("dataset")
       let size = this.get("size")
       let axis = this.get("axis")
       let scales = this.get("scales")
       let svg = this.get("svg")
       let radius = this.get("dotRadius")
-      let s = svg.append("g").selectAll("circle").data(data.x)
+      let s = svg.append("g").selectAll("circle").data(xset)
         .enter().append("circle")
           .attr("class", "data-point")
-          .attr("fill", "green")
-          .attr("cy", (d,i) => this.getYCoords(data.y[i]))
+          .attr("fill", color)
+          .attr("cy", (d,i) => this.getYCoords(yset[i]))
           .attr("cx", (d) => this.getXCoords(d))
           .attr("r", radius)
       this.set({svg: svg})
     },
-    drawLines () {
-      let data = this.get("dataset")
+    drawLines (xset, yset, color="green") {
+      //let data = this.get("dataset")
       let size = this.get("size")
       let axis = this.get("axis")
       let scales = this.get("scales")
       let svg = this.get("svg")
-      let s = svg.append("g").selectAll("line").data(data.x.slice(0, data.x.length - 1))
+      let s = svg.append("g").selectAll("line").data(xset.slice(0, xset.length - 1))
         .enter().append("line")
           .attr("class", "data-line")
-          .attr("stroke", "green")
+          .attr("stroke", color)
           .attr("stroke-width", 2)
-          .attr("y1", (d,i) => this.getYCoords(data.y[i]))
-          .attr("y2", (d,i) => this.getYCoords(data.y[i+1]))
+          .attr("y1", (d,i) => this.getYCoords(yset[i]))
+          .attr("y2", (d,i) => this.getYCoords(yset[i+1]))
           .attr("x1", (d) => this.getXCoords(d))
-          .attr("x2", (d,i) => this.getXCoords(data.x[i+1]))
+          .attr("x2", (d,i) => this.getXCoords(xset[i+1]))
       this.set({svg: svg})
     },
     getXCoords (value) {
@@ -101,12 +101,33 @@ export default {
   },
   oncreate () {
     let selector = this.get("selector")
+    let opts = this.get("options")
+    let data = this.get("dataset")
     this.set({
       svg: d3.select(`#${selector}`)
     })
     this.createAxes()
-    this.drawPoints()
-    this.drawLines()
+    if (opts.multiline) {
+      let m, s
+      if (!Array.isArray(data.x) && typeof(data.x) === "object") {
+        m = data.x
+        s = data.y
+      } else if (!Array.isArray(data.y) && typeof(data.y) === "object") {
+        m = data.y
+        s = data.x
+      }
+      let i = 0
+      data.colors = {}
+      for (var k of Object.keys(m)) {
+        this.drawPoints(s, m[k], d3.schemeCategory20[i])
+        this.drawLines(s, m[k], d3.schemeCategory20[i])
+        data.colors[k] = d3.schemeCategory20[i]
+        i++
+      }
+    } else {
+      this.drawPoints(data.x, data.y)
+      this.drawLines(data.x, data.y)
+    }
   }
 }
 </script>
