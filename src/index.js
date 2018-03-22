@@ -29,16 +29,22 @@ var chart2 = new Main({
     // dataset to put on the chart. minimum x,y
     dataset: {
       //x: ['1','2','3','4','5'],
-      y: [3, 51, 5, 0, 0, 51, 1, 2, 3, 4, 5, 23, 52, 3, 1, 25, 62],
+      //y: [3, 51, 5, 0, 0, 51, 1, 2, 3, 4, 5, 23, 52, 3, 1, 25, 62],
+      y: {
+        '2016': [3, 51, 5, 0, 0, 81, 1, 2, 33, 24, 35, 73, 22, 13, 81, 5, 22],
+        '2017': [9, 31, 75, 40, 8, 51, 9, 28, 13, 74, 3, 2, 58, 23, 31, 28, 72],
+        '2018': [7, 1, 37, 20, 2, 52, 5, 22, 3, 4, 5, 23, 82, 3, 1, 25, 62],
+      },
       x: [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 4, 6, 22, 31, 5, 6]
     },
     // scaling maximums for xy coordinates.
     //scales: {x: 10, y: 20},
     size: {width: 500, height: 200, margin: 25},
     selector: "bar-chart-id2",
-    type: "pie",
+    type: "bar",
     options: {
       show_zeroes: false,
+      stacked: true,
       hovertooltip: true,
       ticks: { 
         format: {

@@ -86,13 +86,24 @@ export default {
       }
       // check for multiple data values sets
       let yset = data.y
-      if (opts.multiline) {
+      if (opts.multiline || opts.stacked) {
         if (Array.isArray(yset)) {
           console.error("Multiline/Stacked charts only accept an object of y-value data")
         }
         yset = []
-        for (let v of Object.values(data.y)) {
-          yset = yset.concat(v)
+        if (opts.multiline) {
+          for (let v of Object.values(data.y)) {
+            yset = yset.concat(v)
+          }
+        } else if (opts.stacked) {
+          console.log(data.y)
+          yset = new Array(data.x.length) 
+          yset.forEach((v,i) => {
+            for (let u of Object.values(data.y)) {
+              yset[i] += u[i]
+            }
+          })
+          console.log("yset", yset)
         }
       }
       if (typeof(yset[0]) === "string") {

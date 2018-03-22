@@ -60,32 +60,63 @@ export default {
         svg: svg
       })
     },
-    drawBars: function () {
+    drawBars: function (xset, yset, color="green") {
       let svg = this.get("svg")
-      let data = this.get("dataset")
+      //let data = this.get("dataset")
       let size = this.get("size")
       let scales = this.get("scales")
       let barwidth = this.get("barWidth")
-      svg = svg.append("g").selectAll("rect").data(data.x)
+      svg = svg.append("g").selectAll("rect").data(xset)
         .enter().append("rect")
           .attr("class", "bar")
-          .attr("fill", "green")
+          .attr("fill", color)
           .attr("width", barwidth)
-          .attr("height", (d,i) => size.adj_height - scales.y(data.y[i]))
-          .attr("y", (d,i) => scales.y(data.y[i]))
+          .attr("height", (d,i) => size.adj_height - scales.y(yset[i]))
+          .attr("y", (d,i) => scales.y(yset[i]))
       if (scales.x.step) { // adjust bars for a scaleBand
         svg.attr("x", (d) => scales.x(d) + (scales.x.step() / 2) - (barwidth / 2))
       } else {
         svg.attr("x", (d) => scales.x(d) - (barwidth / 2))
       }
     },
+    drawBarStack: function (xset, yset) {
+      let svg = this.get("svg")
+      let size = this.get("size")
+      let scales = this.get("scales")
+      let barwidth = this.get("barWidth")
+      let g = svg.append("g")
+          .attr("transform", `translate(${0},${0})`)
+        .selectAll("g").data(xset)
+          .enter().append("g")
+            .attr("class", "bar-stack")
+      let i = 0
+      for (let k of Object.keys(yset)) {
+        g.append("rect")
+          .attr("class", "bar-segment")
+          .attr("fill", d3schemeCategory10[i])
+          .attr("widht", barwidth)
+          .attr("height", (d,i) => size.adj_height - scales.y(yset[k][i]))
+          .attr("y", (d,i) => scales.y(yset[k][i]))
+          .attr("x", (d) => scales.x(d) + (scales.x.step() / 2) - (barwidth  / 2))
+      }
+    }
   },
   oncreate () {
     let opts = this.get("options")
     let selector = this.get("selector")
+    let data = this.get("dataset")
     this.set({
       svg: d3.select(`#${selector}`)
     })
+    if (opts.stacked) {
+      this.drawBarStack()
+      for (let y of Object.values(data.y)) {
+      }
+    } else {
+      this.createAxes()
+      this.drawBars(data.x, data.y)
+    }
+    /*
     if (!opts.show_zeroes) {
       let d = this.get("dataset")
       let non_zero = d.y.map((v,i) => {
@@ -105,8 +136,8 @@ export default {
       }
       this.set({dataset: non_zero_data, options: opts})
     }
-    this.createAxes()
-    this.drawBars()
+    */
+    
   },
   components: {
     HoverToolTip
