@@ -15,11 +15,18 @@ export default {
       svg: undefined,
       scales: undefined,
       axes: undefined,
-      barWidth: 20,
+      barWidth2: 20,
       options: {},
     }
   },
   computed: {
+    barWidth (size, scales) {
+      let w = (size.adj_width / scales.x.domain()[1])
+      if (w < 5) {
+        return w
+      }
+      return w - 5
+    },
     hoverData (dataset, scales, size, barWidth, svg, selector) {
       return {
         dataset: dataset,
@@ -60,9 +67,8 @@ export default {
         svg: svg
       })
     },
-    drawBars: function (xset, yset, color="green") {
+    drawBars (xset, yset, color="green") {
       let svg = this.get("svg")
-      //let data = this.get("dataset")
       let size = this.get("size")
       let scales = this.get("scales")
       let barwidth = this.get("barWidth")
@@ -79,8 +85,10 @@ export default {
         svg.attr("x", (d) => scales.x(d) - (barwidth / 2))
       }
     },
-    drawBarStack: function (xset, yset) {
+    drawBarStack (xset, yset) {
+      let data = this.get("dataset")
       let svg = this.get("svg")
+      let opts = this.get("options")
       let size = this.get("size")
       let scales = this.get("scales")
       let barwidth = this.get("barWidth")
@@ -89,16 +97,72 @@ export default {
         .selectAll("g").data(xset)
           .enter().append("g")
             .attr("class", "bar-stack")
-      let i = 0
+      let coloridx = 0
+      let h = new Array(xset.length)
+      data.colors = []
       for (let k of Object.keys(yset)) {
-        g.append("rect")
-          .attr("class", "bar-segment")
-          .attr("fill", d3schemeCategory10[i])
-          .attr("widht", barwidth)
-          .attr("height", (d,i) => size.adj_height - scales.y(yset[k][i]))
-          .attr("y", (d,i) => scales.y(yset[k][i]))
-          .attr("x", (d) => scales.x(d) + (scales.x.step() / 2) - (barwidth  / 2))
+        data.colors.push(d3.schemeCategory10[coloridx])
+        g.append("g")
+            .attr("class", "segment-container")
+            .attr("transform", (d,i) => {
+              h[i] = (h[i]) ? h[i] - (size.adj_height - scales.y(yset[k][i])) : scales.y(yset[k][i])
+              let x = scales.x(d) - (barwidth  / 2)
+              return `translate(${x}, ${h[i]})`
+            })
+            .attr("data-key", k)
+            .attr("data-index", (d,i) => i)
+          .append("rect")
+            .attr("class", "bar-segment")
+            .attr("id", (d,i) => `segment_${k}_${i}`)
+            .attr("fill", d3.schemeCategory10[coloridx])
+            .attr("width", barwidth)
+            .attr("height", (d,i) => size.adj_height - scales.y(yset[k][i]))
+        coloridx++
       }
+      if (!opts.hovertooltip) {
+        this.drawHoverToolTip(g)
+      }
+    },
+    drawHoverToolTip (g) {
+      let data = this.get("dataset")
+      let size = this.get("size")
+      let scales = this.get("scales")
+      let bw = this.get("barWidth")
+      g.selectAll("g.segment-container").append("rect")
+        .attr("class", "hover-tool-tip")
+        .attr("fill", (d,i) => data.colors[i])
+        .attr("height", (d,i,n) => {
+          let k = n[i].parentElement.dataset.key
+          let j = n[i].parentElement.dataset.index
+          return size.adj_height - scales.y(data.y[k][j])
+        })
+        .attr("width", bw + 4)
+        .attr("x", -2)
+      g.selectAll("g.segment-container").append("rect")
+        .attr("class", "hover-tool-tip-value-box")
+        .attr("fill", "black")
+        .attr("height", 15)
+        .attr("width", (d,i,n) => {
+          let k = n[i].parentElement.dataset.key
+          let j = n[i].parentElement.dataset.index
+          return data.y[k][j].toString().length * 10
+        })
+        .style("z-index", 50)
+        .attr("x", bw + 5)
+      g.selectAll("g.segment-container").append("text")
+        .attr("class", "hover-tool-tip-value")
+        .attr("x", (d,i,n) => {
+          let k = n[i].parentElement.dataset.key
+          let j = n[i].parentElement.dataset.index
+          return bw + 5 + data.y[k][i].toString().length
+        })
+        .attr("y", 12)
+        .style("z-index", 50)
+        .text((d,i,n) => {
+          let k = n[i].parentElement.dataset.key
+          let j = n[i].parentElement.dataset.index
+          return data.y[k][j]
+        })
     }
   },
   oncreate () {
@@ -108,36 +172,14 @@ export default {
     this.set({
       svg: d3.select(`#${selector}`)
     })
+    this.createAxes()
     if (opts.stacked) {
-      this.drawBarStack()
+      this.drawBarStack(data.x, data.y)
       for (let y of Object.values(data.y)) {
       }
     } else {
-      this.createAxes()
       this.drawBars(data.x, data.y)
     }
-    /*
-    if (!opts.show_zeroes) {
-      let d = this.get("dataset")
-      let non_zero = d.y.map((v,i) => {
-        return {x:d.x[i], y:v}
-      }).filter((v,i) => {
-        return v.y !== 0
-      })
-      let non_zero_data = {x:[], y:[]}
-      non_zero.forEach((v) => {
-        non_zero_data.x.push(v.x)
-        non_zero_data.y.push(v.y)
-      })
-      //console.log(d,non_zero, non_zero_data)
-      if (!opts.ticks.user_set) {
-        opts.ticks.count_x = non_zero_data.x.length
-        opts.ticks.count_y = non_zero_data.y.length
-      }
-      this.set({dataset: non_zero_data, options: opts})
-    }
-    */
-    
   },
   components: {
     HoverToolTip
@@ -146,4 +188,23 @@ export default {
 </script>
 
 <style>
+.hover-tool-tip-value {
+  font-family: "Courier New", courier, monospace;
+  font-size: 10pt;
+}
+.hover-tool-tip-value,
+.hover-tool-tip-value-box {
+}
+.hover-tool-tip,
+.hover-tool-tip-value,
+.hover-tool-tip-value-box {
+  opacity: 0;
+}
+.segment-container:hover .hover-tool-tip,
+.segment-container:hover .hover-tool-tip-value-box {
+  opacity: 0.33;
+}
+.segment-container:hover .hover-tool-tip-value {
+  opacity: 1;
+}
 </style>

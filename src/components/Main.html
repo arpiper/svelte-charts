@@ -49,7 +49,7 @@ export default {
       title: undefined,
       size: {
         height: 300,
-        width: 600,
+        width: 800,
         margin: 20 
       },
       dataset: {},
@@ -92,18 +92,18 @@ export default {
         }
         yset = []
         if (opts.multiline) {
+          // make one big array for checking max value below.
           for (let v of Object.values(data.y)) {
             yset = yset.concat(v)
           }
         } else if (opts.stacked) {
-          console.log(data.y)
+          // sum the arrays for max values of the stacks
           yset = new Array(data.x.length) 
-          yset.forEach((v,i) => {
+          data.x.forEach((v,i) => {
             for (let u of Object.values(data.y)) {
-              yset[i] += u[i]
+              yset[i] = (yset[i]) ? yset[i] + u[i] : u[i]
             }
           })
-          console.log("yset", yset)
         }
       }
       if (typeof(yset[0]) === "string") {

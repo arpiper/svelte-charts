@@ -35,17 +35,17 @@ var chart2 = new Main({
         '2017': [9, 31, 75, 40, 8, 51, 9, 28, 13, 74, 3, 2, 58, 23, 31, 28, 72],
         '2018': [7, 1, 37, 20, 2, 52, 5, 22, 3, 4, 5, 23, 82, 3, 1, 25, 62],
       },
-      x: [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 4, 6, 22, 31, 5, 6]
+      x: [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 11, 14, 16, 22, 31, 25, 26]
     },
     // scaling maximums for xy coordinates.
     //scales: {x: 10, y: 20},
-    size: {width: 500, height: 200, margin: 25},
+    size: {width: 800, height: 300, margin: 25},
     selector: "bar-chart-id2",
     type: "bar",
     options: {
       show_zeroes: false,
       stacked: true,
-      hovertooltip: true,
+      hovertooltip: false,
       ticks: { 
         format: {
           y: {pre: "$"}
