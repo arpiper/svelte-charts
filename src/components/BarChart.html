@@ -99,14 +99,16 @@ export default {
             .attr("class", "bar-stack")
       let coloridx = 0
       let h = new Array(xset.length)
-      data.colors = []
+      data.colors = {}
+      data.pos = JSON.parse(JSON.stringify(data.y))
       for (let k of Object.keys(yset)) {
-        data.colors.push(d3.schemeCategory10[coloridx])
+        data.colors[k] = d3.schemeCategory10[coloridx]
         g.append("g")
             .attr("class", "segment-container")
             .attr("transform", (d,i) => {
               h[i] = (h[i]) ? h[i] - (size.adj_height - scales.y(yset[k][i])) : scales.y(yset[k][i])
               let x = scales.x(d) - (barwidth  / 2)
+              data.pos[k][i] = {x: x, y: h[i]}
               return `translate(${x}, ${h[i]})`
             })
             .attr("data-key", k)
@@ -120,24 +122,60 @@ export default {
         coloridx++
       }
       if (!opts.hovertooltip) {
-        this.drawHoverToolTip(g)
+        this.drawHoverToolTip()
       }
     },
-    drawHoverToolTip (g) {
+    drawHoverToolTip () {
+      let o = this.get("options")
       let data = this.get("dataset")
       let size = this.get("size")
       let scales = this.get("scales")
       let bw = this.get("barWidth")
-      g.selectAll("g.segment-container").append("rect")
+      let svg = this.get("svg")
+      let f = o.ticks.format
+      let g = svg.append("g").selectAll("g")
+          .data(data.x)
+        .enter().append("g")
+          .attr("class", "bar-stack2")
+      for (let k of Object.keys(data.y)) {
+        g.append("g")
+          .attr("class", "segment-container")
+          .attr("data-key", k)
+          .attr("data-index", (d,i) => i)
+          .attr("transform", (d,i) => {
+            return `translate(${data.pos[k][i].x}, ${data.pos[k][i].y})`
+          })
+      }
+      g.selectAll(".segment-container").append("rect")
         .attr("class", "hover-tool-tip")
-        .attr("fill", (d,i) => data.colors[i])
+        .attr("fill", (d,i,n) =>{
+          let k = n[i].parentElement.dataset.key
+          return data.colors[k]
+        })
+        .attr("width", bw + 4)
         .attr("height", (d,i,n) => {
           let k = n[i].parentElement.dataset.key
           let j = n[i].parentElement.dataset.index
           return size.adj_height - scales.y(data.y[k][j])
         })
-        .attr("width", bw + 4)
         .attr("x", -2)
+
+      let tip = g.selectAll("g.segment-container").append("foreignObject")
+        .attr("class", "tipFO")
+        .attr('height', 100)
+        .attr("width", 100)
+        .attr("opacity", 1)
+
+      let style = document.createElement("style")
+      tip.append("xhtml:head").node().appendChild(style)
+      console.log('tip', tip, 'g', g)
+      let s = document.createElement("span")
+      s.className = "tip-span"
+      //tip.node()
+        g.selectAll('foreignObject').node().appendChild(document.createElement("body"))
+          .appendChild(s)
+
+      /*
       g.selectAll("g.segment-container").append("rect")
         .attr("class", "hover-tool-tip-value-box")
         .attr("fill", "black")
@@ -145,7 +183,9 @@ export default {
         .attr("width", (d,i,n) => {
           let k = n[i].parentElement.dataset.key
           let j = n[i].parentElement.dataset.index
-          return data.y[k][j].toString().length * 10
+          let t = `${f.x.pre}${data.x[j]}${f.x.suf}
+            ${f.y.pre}${data.y[k][j]}${f.y.suf}`
+          return t.length * 10
         })
         .style("z-index", 50)
         .attr("x", bw + 5)
@@ -161,8 +201,11 @@ export default {
         .text((d,i,n) => {
           let k = n[i].parentElement.dataset.key
           let j = n[i].parentElement.dataset.index
-          return data.y[k][j]
+          let t = `${f.x.pre}${data.x[j]} -${k}${f.x.suf}
+            ${f.y.pre}${data.y[k][j]}${f.y.suf}`
+          return t
         })
+        */
     }
   },
   oncreate () {
@@ -200,11 +243,25 @@ export default {
 .hover-tool-tip-value-box {
   opacity: 0;
 }
-.segment-container:hover .hover-tool-tip,
-.segment-container:hover .hover-tool-tip-value-box {
-  opacity: 0.33;
+.hover-tool-tip:hover,
+.hover-tool-tip:hover ~ .hover-tool-tip-value-box {
+  opacity: 0.5;
 }
-.segment-container:hover .hover-tool-tip-value {
+.hover-tool-tip:hover ~ .hover-tool-tip-value,
+.hover-tool-tip:hover ~ .tipFO {
   opacity: 1;
+  visibility: visible;
+}
+.tipFO {
+  width: 20px;
+  height: 50px;
+  position: relative;
+  opacity: 1;
+}
+.tip-span {
+  background-color: red;
+  width: 20px;
+  height: 30px;
+  display: block;
 }
 </style>
