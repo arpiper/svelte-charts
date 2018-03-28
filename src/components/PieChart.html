@@ -68,8 +68,8 @@ export default {
         .attr("fill", (d,i) => data.colors[i])
       g.append("text")
         .attr("x", (key_size + 5))
-        .text((d,i) => `${o.ticks.format.x.pre}${d}${o.ticks.format.x.suf} - 
-          ${o.ticks.format.y.pre}${data.y[i]}${o.ticks.format.y.suf}`)
+        .text((d,i) => `${o.ticks.format.y.pre}${data.y[i]}${o.ticks.format.y.suf} - 
+          ${o.ticks.format.x.pre}${d}${o.ticks.format.x.suf}`)
         .attr("font-size", key_size)
     },
   },
