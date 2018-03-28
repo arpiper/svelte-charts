@@ -111,8 +111,8 @@ export default {
               data.pos[k][i] = {x: x, y: h[i]}
               return `translate(${x}, ${h[i]})`
             })
-            .attr("data-key", k)
-            .attr("data-index", (d,i) => i)
+            //.attr("data-key", k)
+            //.attr("data-index", (d,i) => i)
           .append("rect")
             .attr("class", "bar-segment")
             .attr("id", (d,i) => `segment_${k}_${i}`)
@@ -136,12 +136,11 @@ export default {
       let g = svg.append("g").selectAll("g")
           .data(data.x)
         .enter().append("g")
-          .attr("class", "bar-stack2")
+          .attr("class", "bar-stack-hover")
       for (let k of Object.keys(data.y)) {
         g.append("g")
           .attr("class", "segment-container")
-          .attr("data-key", k)
-          .attr("data-index", (d,i) => i)
+          .attr("data-ki", (d,i) => `${k}:${i}`)
           .attr("transform", (d,i) => {
             return `translate(${data.pos[k][i].x}, ${data.pos[k][i].y})`
           })
@@ -149,64 +148,64 @@ export default {
       g.selectAll(".segment-container").append("rect")
         .attr("class", "hover-tool-tip")
         .attr("fill", (d,i,n) =>{
-          let k = n[i].parentElement.dataset.key
-          return data.colors[k]
+          let k = n[i].parentElement.dataset.ki.split(":")
+          return data.colors[k[0]]
         })
         .attr("width", bw + 4)
         .attr("height", (d,i,n) => {
-          let k = n[i].parentElement.dataset.key
-          let j = n[i].parentElement.dataset.index
-          return size.adj_height - scales.y(data.y[k][j])
+          let k = n[i].parentElement.dataset.ki.split(":")
+          return size.adj_height - scales.y(data.y[k[0]][k[1]])
         })
         .attr("x", -2)
 
-      let tip = g.selectAll("g.segment-container").append("foreignObject")
-        .attr("class", "tipFO")
-        .attr('height', 100)
-        .attr("width", 100)
-        .attr("opacity", 1)
+      let tip = g.selectAll("g.segment-container")
+        .append("foreignObject")
+          .attr("class", "tipFO")
+          .attr("data-ki", (d,i,n) => n[i].parentElement.dataset.ki)
+          .attr("x", bw + 4)
+          .attr("y", (d,i,n) => {
+            let ki = n[i].parentElement.dataset.ki.split(':')
+            if (data.pos[ki[0]][ki[1]].y >= (size.adj_height - 5)) {
+              return -10
+            }
+            return 0
+          })
 
-      let style = document.createElement("style")
-      tip.append("xhtml:head").node().appendChild(style)
-      console.log('tip', tip, 'g', g)
-      let s = document.createElement("span")
-      s.className = "tip-span"
-      //tip.node()
-        g.selectAll('foreignObject').node().appendChild(document.createElement("body"))
-          .appendChild(s)
+      tip.append("xhtml:head")
+      tip.append("xhtml:body")
+        .append("span")
+          .attr("class", "tip-span")
+          .text((d,i,n) => {
+            let k = n[i].parentElement.parentElement.dataset.ki.split(":")
+            return `${f.x.pre}${d}${f.x.suf}-${f.y.pre}${data.y[k[0]][k[1]]}${f.y.suf}`
+          })
+    },
+    drawKey () {
+      let data = this.get("dataset")
+      let size = this.get("size")
+      let svg = this.get("svg")
+      let key_size = 50
+      let key_height = 10
+      let key_spacing = 15
+      let g = svg.append("g")
+          .attr("transform", `translate(${size.adj_width - key_size},${0})`)
+          .selectAll("g")
+        .data(Object.values(data.colors))
+          .enter().append("g")
+          .attr("transform", (d,i) => `translate(0, ${i * key_spacing})`)
+      g.append("rect")
+        .attr("class", "key-color")
+        .attr("width", key_height)
+        .attr("height", key_height)
+        .attr("y", -key_height)
+        .attr("fill", (d) => d)
+      g.append("text")
+        .attr("class", "key-name")
+        .attr("x", key_height + 5)
+        .style("font-size", key_height)
+        .text((d,i) => Object.keys(data.colors)[i])
 
-      /*
-      g.selectAll("g.segment-container").append("rect")
-        .attr("class", "hover-tool-tip-value-box")
-        .attr("fill", "black")
-        .attr("height", 15)
-        .attr("width", (d,i,n) => {
-          let k = n[i].parentElement.dataset.key
-          let j = n[i].parentElement.dataset.index
-          let t = `${f.x.pre}${data.x[j]}${f.x.suf}
-            ${f.y.pre}${data.y[k][j]}${f.y.suf}`
-          return t.length * 10
-        })
-        .style("z-index", 50)
-        .attr("x", bw + 5)
-      g.selectAll("g.segment-container").append("text")
-        .attr("class", "hover-tool-tip-value")
-        .attr("x", (d,i,n) => {
-          let k = n[i].parentElement.dataset.key
-          let j = n[i].parentElement.dataset.index
-          return bw + 5 + data.y[k][i].toString().length
-        })
-        .attr("y", 12)
-        .style("z-index", 50)
-        .text((d,i,n) => {
-          let k = n[i].parentElement.dataset.key
-          let j = n[i].parentElement.dataset.index
-          let t = `${f.x.pre}${data.x[j]} -${k}${f.x.suf}
-            ${f.y.pre}${data.y[k][j]}${f.y.suf}`
-          return t
-        })
-        */
-    }
+    },
   },
   oncreate () {
     let opts = this.get("options")
@@ -218,8 +217,7 @@ export default {
     this.createAxes()
     if (opts.stacked) {
       this.drawBarStack(data.x, data.y)
-      for (let y of Object.values(data.y)) {
-      }
+      this.drawKey()
     } else {
       this.drawBars(data.x, data.y)
     }
@@ -249,19 +247,20 @@ export default {
 }
 .hover-tool-tip:hover ~ .hover-tool-tip-value,
 .hover-tool-tip:hover ~ .tipFO {
-  opacity: 1;
   visibility: visible;
+  display: block;
 }
 .tipFO {
-  width: 20px;
-  height: 50px;
   position: relative;
-  opacity: 1;
+  display: none;
 }
 .tip-span {
-  background-color: red;
-  width: 20px;
-  height: 30px;
-  display: block;
+  color: black;
+  background-color: white;
+  border: 1px solid black;
+  padding: 2px 5px;
+  width: 100%;
+  height: 100%;
+  font-size: 10pt;
 }
 </style>
